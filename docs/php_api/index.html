@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Example docdatapayment (PHP)</title>
+</head>
+<style>
+    .row label {
+        margin-right: 100px;
+        display: block;
+    }
+
+    .row {
+        margin-bottom: 10px;
+    }
+
+    legend {
+        font-weight: 900;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    input[type=text] {
+        width: 200px;
+    }
+</style>
+<body>
+<h1>Example docdatapayment (PHP)</h1>
+
+<div id="input">
+    <form id="paymentform" action="process.php" method="post">
+        <fieldset>
+            <legend>1. Merchant</legend>
+            <div class="row"><label for="merchantname">Merchant name:</label><input name="merchantname" type="text" size="30" value="phptest" /></div>
+            <div class="row"><label for="merchantpassword">Merchant password:</label><input name="merchantpassword" type="text" size="30" value="fdUDhGBT" /></div>
+        </fieldset>
+
+        <fieldset>
+            <legend>2. Order</legend>
+            <div class="row"><label for="merchantOrderReference">merchantOrderReference:</label><input name="merchantOrderReference" type="text" size="30" value="12345" /></div>
+            <div class="row"><label for="totalGrossAmount">totalGrossAmount:</label><input name="totalGrossAmount" type="text" size="30" value="1000" /></div>
+            <div class="row"><label for="totalNetAmount">totalNetAmount:</label><input name="totalNetAmount" type="text" size="30" value="1000" /></div>
+            <div class="row"><label for="totalVatAmount">totalVatAmount:</label><input name="totalVatAmount" type="text" size="30" value="190" /></div>
+        </fieldset>
+
+        <fieldset>
+            <legend>3. Shopper</legend>
+            <div class="row"><label for="shopperid">Shopper ID:</label><input name="shopperid" type="text" size="30" value="12345" /></div>
+            <div class="row"><label for="shoppernamefirst">First name:</label><input name="shoppernamefirst" type="text" size="30" value="Firstname" /></div>
+            <div class="row"><label for="shoppernameinitials">Last name:</label><input name="shoppernameinitials" type="text" size="30" value="T." /></div>
+            <div class="row"><label for="shoppernamelast">Last name:</label><input name="shoppernamelast" type="text" size="30" value="Lastname" /></div>
+            <div class="row"><label for="shopperemail">Email:</label><input name="shopperemail" type="text" size="30" value="info@test.com" /></div>
+
+            <div class="row"><label for="shopperlanguagecode">Language:</label><input name="shopperlanguagecode" type="text" size="30" value="nl" /></div>
+            <div class="row"><label for="shoppergender">Gender:</label><input name="shoppergender" type="text" size="30" value="M" /></div>
+            <div class="row"><label for="shopperdateOfBirth">Date of birth:</label><input name="shopperdateOfBirth" type="text" size="30" value="1972-02-02" /></div>
+            <div class="row"><label for="shopperphoneNumber">Phonenumber:</label><input name="shopperphoneNumber" type="text" size="30" value="+31201234567" /></div>
+            <div class="row"><label for="shoppermobilePhoneNumber">Mobile:</label><input name="shoppermobilePhoneNumber" type="text" size="30" value="+3161234567" /></div>
+        </fieldset>
+
+        <fieldset>
+            <legend>4. Address</legend>
+            <div class="row"><label for="street">Street:</label><input name="street" type="text" size="30" value="Teststraat" /></div>
+            <div class="row"><label for="houseNumber">House number:</label><input name="houseNumber" type="text" size="30" value="10" /></div>
+            <div class="row"><label for="postalCode">Postalcode:</label><input name="postalCode" type="text" size="30" value="1000AA" /></div>
+            <div class="row"><label for="city">City:</label><input name="city" type="text" size="30" value="Amsterdam" /></div>
+            <div class="row"><label for="country">Country:</label><input name="country" type="text" size="30" value="NL" /></div>
+        </fieldset>
+
+        <input type="submit" value="TEST" />
+    </form>
+</div>
+
+<div id="contact">
+    Example by <a href="http://www.individualae.nl">Individual AE</a>
+</div>
+</body>
+</html>
