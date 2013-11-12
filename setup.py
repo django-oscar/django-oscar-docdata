@@ -36,8 +36,9 @@ setup(
     license='Apache License, Version 2.0',
 
     install_requires=[
-        'django-docdata>=0.2',
-        'django-oscar>=0.3'  # used from django-oscar-paymentexpress
+        'suds>=0.4',                   # for SOAP requests.
+        'django-oscar>=0.5',           # version number guessed
+        'django-polymorphic>=0.5.3',   # 0.5.1 has Django 1.6 support, but ask for the latest bugfix release.
     ],
     requires=[
         'Django (>=1.4)',

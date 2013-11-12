@@ -1,0 +1,27 @@
+
+class DocdataException(Exception):
+    """
+    Base class for all exceptions from Docdata
+    """
+    def __init__(self, code, value):
+        super(DocdataException, self).__init__(value)
+        self.code = code
+        self.value = value
+
+
+class DocdataCreateError(DocdataException):
+    """
+    There was an error creating the payment.
+    """
+
+
+class DocdataStartError(DocdataException):
+    """
+    There was an error start the payment..
+    """
+
+
+class DocdataStatusError(DocdataException):
+    """
+    There was an error requesting the status
+    """
