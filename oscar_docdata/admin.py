@@ -11,6 +11,11 @@ from oscar_docdata.models import DocdataOrder, DocdataPayment
 class DocdataPaymentInline(admin.TabularInline):
     model = DocdataPayment
     readonly_fields = ('payment_id', 'status', 'payment_method')
+    extra = 0
+    can_delete = False
+
+    def has_add_permission(self, request):
+        return False
 
 
 class DocdataOrderAdmin(admin.ModelAdmin):
