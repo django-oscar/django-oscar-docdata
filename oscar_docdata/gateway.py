@@ -415,7 +415,7 @@ class CreateReply(object):
         self.order_key = order_key
 
     def __repr__(self):
-        return self.order_key
+        return "<CreateReply {0}>".format(self.order_key)
 
 
 class StartReply(object):
@@ -424,6 +424,9 @@ class StartReply(object):
     """
     def __init__(self, payment_id):
         self.payment_id = payment_id
+
+    def __repr__(self):
+        return "<StartReply {0}>".format(self.payment_id)
 
 
 class StatusReply(object):
@@ -434,33 +437,8 @@ class StatusReply(object):
         self.order_key = order_key
         self.report = report
 
-        """
-        # Extract
-        self.merchant_name = report.merchantname
-        self.merchant_password = report.merchantpassword
-        self.merchantOrderReference = report.merchantOrderReference
-
-        self.totalGrossAmount = report.totalGrossAmount
-        self.totalNetAmount = report.totalNetAmount
-        self.totalVatAmount = report.totalVatAmount
-
-        self.shopper_id = report.shopperid
-        self.shopper_name_first = report.shoppernamefirst
-        self.shopper_name_initials = report.shoppernameinitials
-        self.shopper_name_last = report.shoppernamelast
-        self.shopper_email = report.shopperemail
-        self.shopper_language_code = report.shopperlanguagecode
-        self.shopper_gender = report.shoppergender
-        self.shopper_dateOfBirth = report.shopperdateOfBirth
-        self.shopper_phoneNumber = report.shopperphoneNumber
-        self.shopper_mobilePhoneNumber = report.shoppermobilePhoneNumber
-
-        self.street = report.street
-        self.houseNumber = report.houseNumber
-        self.postalCode = report.postalCode
-        self.city = report.city
-        self.country = report.country
-        """
+    def __repr__(self):
+        return "<StatusReply {0}>".format(repr(self.report))
 
 
 class Name(object):
