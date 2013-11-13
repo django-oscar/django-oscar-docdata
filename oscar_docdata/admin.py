@@ -23,7 +23,9 @@ class DocdataOrderAdmin(admin.ModelAdmin):
     Admin for .
     """
     list_display = ('merchant_order_id', 'order_key', 'total_gross_amount', 'status', 'created')
+    list_filter = ('status',)
     inlines = (DocdataPaymentInline,)
+    date_hierarchy = 'created'
 
     readonly_fields = (
         'merchant_order_id', 'order_key', 'total_gross_amount', 'status', 'language', 'currency', 'country',
