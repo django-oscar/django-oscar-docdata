@@ -403,6 +403,7 @@ class DocdataClient(object):
             return_url = request.build_absolute_uri(return_url)
 
         args = {
+            'command': 'show_payment_cluster',
             'payment_cluster_key': order_key,
             'merchant_name': appsettings.DOCDATA_MERCHANT_NAME,
             'return_url_success': return_url,
