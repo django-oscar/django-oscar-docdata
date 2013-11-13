@@ -343,8 +343,7 @@ class Interface(object):
 
     def _save_status(self, order, new_status):
         """
-        Changes the Cowry Payment status to new_status and sends a single about the change.
-        Subclasses must use this method to change statuses.
+        Changes the payment status to new_status and sends a signal about the change.
         """
         old_status = order.status
         if old_status != new_status:
