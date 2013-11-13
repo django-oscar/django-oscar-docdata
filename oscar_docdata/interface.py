@@ -166,6 +166,10 @@ class Interface(object):
             logger.exception("Failed to fetch docdata status!")
             raise
 
+        # Can't update much yet, status is empty.
+        if not hasattr(statusreply.report, 'payment'):
+            return
+
         # TODO: create Oscar PaymentEvent?
 
         # Store all report lines
