@@ -12,7 +12,8 @@ OrderPlacementMixin = get_class('checkout.mixins', 'OrderPlacementMixin')
 
 
 class UpdateOrderMixin(object):
-    order_key_arg = 'key'
+    # What docdata calls the order_id, we call the order_key
+    order_key_arg = 'order_id'
 
     def get_order_key(self):
         try:
@@ -59,9 +60,6 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
 
     The use of this service is optional, but recommended.
     """
-    # What docdata calls the order_id, we call the order_key
-    order_key_arg = 'order_id'
-
     def get(self, request, *args, **kwargs):
         order_key = self.get_order_key()
         self.update_order(order_key)

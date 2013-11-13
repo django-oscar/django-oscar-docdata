@@ -394,8 +394,8 @@ class DocdataClient(object):
         if not return_url:
             return_url = reverse('return_url', current_app='oscar_docdata')
 
-        # Add key= parameter to the URL
-        url_format = '{0}&key={1}' if '?' in return_url else '{0}?key={1}'
+        # Add order_id= parameter to the URL
+        url_format = '{0}&order_id={1}' if '?' in return_url else '{0}?order_id={1}'
         return_url = url_format.format(return_url, order_key)
 
         # Make sure URLs are absolute.
