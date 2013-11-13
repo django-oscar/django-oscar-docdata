@@ -185,6 +185,7 @@ class DocdataClient(object):
             shopper,
             bill_to,
             description,
+            receiptText=None,
             profile=appsettings.DOCDATA_PROFILE,
             days_to_pay=appsettings.DOCDATA_DAYS_TO_PAY
         ):
@@ -209,8 +210,10 @@ class DocdataClient(object):
         :type shopper: Shopper
         :param bill_to: Name and address to use for billing.
         :type bill_to: Destination
-        :param description: The description of the order.
+        :param description: The description of the order (max 50 chars).
         :type description: str
+        :param receiptText: The description that is used by payment providers on shopper statements (max 50 chars).
+        :type receiptText: str
         :param profile: The profile that is used to select the payment methods that can be used to pay this order.
         :param days_to_pay: The expected number of days in which the payment should be processed, or be expired if not paid.
         :rtype: CreateReply
@@ -231,6 +234,9 @@ class DocdataClient(object):
         #     destination billTo, string50 description, string50 receiptText, xs:boolean includeCosts,
         #     paymentRequest paymentRequest, invoice invoice )
         #
+        # The WSDL and XSD also contain documentation individualnvidual parameters:
+        # https://secure.docdatapayments.com/ps/services/paymentservice/1_0?xsd=1
+        #
         # TODO: can also pass shipTo + invoice details to docdata.
         # This displays the results in the docdata web menu.
         #
@@ -239,7 +245,8 @@ class DocdataClient(object):
             shopper.to_xml(self.client.factory),
             total_gross_amount.to_xml(self.client.factory),
             bill_to.to_xml(self.client.factory),
-            description or None
+            description or None,
+            receiptText or None
         )
 
         # Parse the reply
@@ -258,6 +265,12 @@ class DocdataClient(object):
         """
         The start operation is used for starting a (web direct) payment on an order.
         It does not need to be used if the merchant makes use of Docdata Payments web menu.
+
+        The web direct can be used for recurring payments for example.
+        Standard payments (e.g. iDEAL, creditcard) all happen through the web menu
+        because implementing those locally requires certification by the credit card companies.
+
+        TODO: untested
 
         :type order_key: str
         :param payment: A subclass of the payment class, which one depends on the payment method.
