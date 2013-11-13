@@ -1,9 +1,10 @@
 import logging
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound
 from django.views.generic import View
 from oscar.core.loading import get_class
 from oscar_docdata import appsettings
 from oscar_docdata.facade import Facade
+from oscar_docdata.models import DocdataOrder
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +18,16 @@ class UpdateOrderMixin(object):
         try:
             return self.request.GET[self.order_key_arg]
         except KeyError:
-            return HttpResponseBadRequest("Missing key parameter")
+            return HttpResponseBadRequest(u"Missing key parameter", content_type='text/plain; charset=utf-8')
 
     def update_order(self, order_key):
         # Ask the facade to request the status, and update the order accordingly.
         facade = Facade()
-        facade.update_order_by_key(order_key)
+
+        try:
+            facade.update_order_by_key(order_key)
+        except DocdataOrder.DoesNotExist:
+            return HttpResponseNotFound(u"Order '{0}' not found!".format(order_key), content_type='text/plain; charset=utf-8')
 
 
 class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
@@ -62,4 +67,4 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
         self.update_order(order_key)
 
         # Return 200 as required by DocData when the status changed notification was consumed.
-        return HttpResponse("ok, that's cool")
+        return HttpResponse(u"ok, that's cool", content_type='text/plain; charset=utf-8')
