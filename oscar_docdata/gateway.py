@@ -351,7 +351,24 @@ class DocdataClient(object):
         if hasattr(reply, 'statusSuccess'):
             return StatusReply(order_key, reply.statusSuccess.report)
         elif hasattr(reply, 'statusError'):
-            error = reply.createError.error
+            error = reply.statusError.error
+            log_docdata_error(error, "DocdataClient: failed to get status for order {0}".format(order_key))
+            raise DocdataStatusError(error._code, error.value)
+        else:
+            logger.error("Unexpected response node from docdata!")
+            raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
+
+
+    def status_extended(self, order_key):
+        """
+        Request the status with extended information.
+        """
+        reply = self.client.service.statusExtended(self.merchant, order_key)
+
+        if hasattr(reply, 'statusSuccess'):
+            return StatusReply(order_key, reply.statusSuccess.report)
+        elif hasattr(reply, 'statusError'):
+            error = reply.statusError.error
             log_docdata_error(error, "DocdataClient: failed to get status for order {0}".format(order_key))
             raise DocdataStatusError(error._code, error.value)
         else:
