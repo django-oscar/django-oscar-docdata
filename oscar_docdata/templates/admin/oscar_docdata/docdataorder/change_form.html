@@ -1,0 +1,6 @@
+{% extends "admin/change_form.html" %}{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+  {% if change %}<li><a href="{% url opts|admin_urlname:'update' original.pk %}">{% trans 'Update status' %}</a></li>{% endif %}
+  {{ block.super }}
+{% endblock %}
