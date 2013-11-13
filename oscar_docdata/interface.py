@@ -49,7 +49,7 @@ class Interface(object):
         self.client = DocdataClient(testing_mode)
 
 
-    def create_payment(self, order_number, total, user, billingaddress, language=None, description=None, profile=appsettings.DOCDATA_PROFILE):
+    def create_payment(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, **kwargs):
         """
         Start a new payment session / container.
 
@@ -60,28 +60,22 @@ class Interface(object):
         :param total: The price object, inclusing totals and currency.
         :type total: :class:`oscar.core.prices.Price`
         :type user: :class:`django.contrib.auth.models.User`
-        :param billingaddress: The shipping address.
-        :type billingaddress: :class:`oscar.apps.order.models.BillingAddress`
         """
-        # Receives an XSD validation error otherwise.
-        if not user.first_name or not user.last_name:
-            raise ValueError("User #{0} name cannot be empty!".format(user.id))
-
         if not language:
             language = get_language()
 
         # May raise an DocdataCreateError exception
-        args = self.get_create_payment_args(order_number, total, user, billingaddress, language=language, description=description, profile=profile)
-        createsuccess = self.client.create(**args)
+        call_args = self.get_create_payment_args(order_number, total, user, language=language, description=description, profile=profile, **kwargs)
+        createsuccess = self.client.create(**call_args)
 
         # Track order_key for local logging
-        self._store_create_success(order_number, createsuccess.order_key, args['total_gross_amount'], args['shopper'], args.get('bill_to'))
+        self._store_create_success(order_number, createsuccess.order_key, call_args['total_gross_amount'], call_args['shopper'], call_args.get('bill_to'))
 
         # Return for further reference
         return createsuccess.order_key
 
 
-    def get_create_payment_args(self, order_number, total, user, billingaddress, language=None, description=None, profile=appsettings.DOCDATA_PROFILE):
+    def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE):
         """
         The arguments to pass to create a payment.
         This is implementation-specific, hence not implemented here.
