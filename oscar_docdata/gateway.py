@@ -359,7 +359,7 @@ class DocdataClient(object):
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
 
 
-    def get_payment_menu_url(self, request, order_key, return_url=None, client_language=None, **extra_args):
+    def get_payment_menu_url(self, request, order_key, return_url=None, client_language=None, **extra_url_args):
         """
         Return the URL to the payment menu,
         where the user can be redirected to after creating a successful payment.
@@ -394,7 +394,7 @@ class DocdataClient(object):
             'return_url_error': return_url,
             'client_language': (client_language or get_language()).upper()
         }
-        args.update(extra_args)
+        args.update(extra_url_args)
 
         if self.testing_mode:
             return 'https://test.docdatapayments.com/ps/menu?' + urlencode(args)

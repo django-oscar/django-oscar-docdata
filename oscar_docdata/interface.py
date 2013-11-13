@@ -97,14 +97,14 @@ class Interface(object):
         )
 
 
-    def get_payment_menu_url(self, request, order_key, return_url=None, client_language=None, **extra_args):
+    def get_payment_menu_url(self, request, order_key, return_url=None, client_language=None, **extra_url_args):
         """
         Return the URL to the payment menu,
         where the user can be redirected to after creating a successful payment.
 
         For more information, see :func:`DocdataClient.get_payment_menu_url`.
         """
-        return self.client.get_payment_menu_url(request, order_key, return_url=return_url, client_language=client_language, *extra_args)
+        return self.client.get_payment_menu_url(request, order_key, return_url=return_url, client_language=client_language, **extra_url_args)
 
 
     def start_payment(self, order_key, payment, payment_method=None):
