@@ -25,3 +25,9 @@ class DocdataStatusError(DocdataException):
     """
     There was an error requesting the status
     """
+
+
+class DocdataCancelError(DocdataException):
+    """
+    There was an error cancelling the order.
+    """

@@ -124,18 +124,19 @@ class Interface(object):
         return startsuccess.payment_id
 
 
-    def update_order_by_id(self, order_id):
+    def cancel_order(self, order):
         """
-        Update the status of an order, by fetching the latest state from docdata.
+        Cancel the order.
         """
-        # Try to find the order.
         try:
-            order = DocdataOrder.objects.get(merchant_order_id=order_id)
-        except DocdataOrder.DoesNotExist:
-            logger.error('Order #{0} not found to update payment status.'.format(order_id))
+            client = DocdataClient()
+            client.cancel(order.order_key)
+        except DocdataException:
+            logger.exception("Failed to cancel docdata order!")
             raise
 
-        return self.update_order(order)
+        # Let docdata be the master.
+        self.update_order(order)
 
 
     def update_order_by_key(self, order_key):

@@ -12,7 +12,7 @@ from django.utils.translation import get_language
 from urllib import urlencode
 from urllib2 import URLError
 from oscar_docdata import appsettings
-from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError
+from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError
 
 logger = logging.getLogger(__name__)
 
@@ -309,6 +309,17 @@ class DocdataClient(object):
         The cancel command is used for canceling a previously created payment,
         and can only be used for payments with status NEW, STARTED and AUTHORIZED.
         """
+        reply = self.client.service.cancel(self.merchant, order_key)
+
+        if hasattr(reply, 'cancelSuccess'):
+            return True
+        elif hasattr(reply, 'cancelError'):
+            error = reply.cancelError.error
+            log_docdata_error(error, "DocdataClient: failed to cancel the order {0}".format(order_key))
+            raise DocdataCancelError(error._code, error.value)
+        else:
+            logger.error("Unexpected response node from docdata!")
+            raise NotImplementedError('Received unknown reply from DocData. Remote Payment not cancelled.')
 
 
     def status(self, order_key):
@@ -356,7 +367,7 @@ class DocdataClient(object):
             raise DocdataStatusError(error._code, error.value)
         else:
             logger.error("Unexpected response node from docdata!")
-            raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
+            raise NotImplementedError('Received unknown reply from DocData. No status processed from Docdata.')
 
 
     def status_extended(self, order_key):
