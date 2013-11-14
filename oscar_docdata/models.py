@@ -19,12 +19,13 @@ class DocdataOrder(models.Model):
     STATUS_UNKNOWN = 'unknown'
 
     STATUS_CHOICES = (
-        (STATUS_PAID, _("Paid")),
+        (STATUS_NEW, _("New")),
         (STATUS_IN_PROGRESS, _("In Progress")),
-        (STATUS_CHARGED_BACK, _("Charged back")),
-        (STATUS_CANCELLED, _("Cancelled")),
         (STATUS_PENDING, _("Pending")),
+        (STATUS_PAID, _("Paid")),
+        (STATUS_CHARGED_BACK, _("Charged back")),
         (STATUS_REFUNDED, _("Refunded")),
+        (STATUS_CANCELLED, _("Cancelled")),
         (STATUS_UNKNOWN, _("Unknown")),
     )
 

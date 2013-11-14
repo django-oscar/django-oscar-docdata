@@ -28,7 +28,8 @@ class Interface(object):
         DocdataClient.STATUS_REDIRECTED_FOR_AUTHENTICATION: DocdataOrder.STATUS_IN_PROGRESS,
         DocdataClient.STATUS_AUTHORIZED: DocdataOrder.STATUS_PENDING,
         DocdataClient.STATUS_AUTHORIZATION_REQUESTED: DocdataOrder.STATUS_PENDING,
-        DocdataClient.STATUS_PAID: DocdataOrder.STATUS_PENDING,
+        DocdataClient.STATUS_PAID: DocdataOrder.STATUS_PENDING,  # Overwritten when it's totals are checked.
+
         DocdataClient.STATUS_CANCELLED: DocdataOrder.STATUS_CANCELLED,
         DocdataClient.STATUS_CHARGED_BACK: DocdataOrder.STATUS_CHARGED_BACK,
         DocdataClient.STATUS_CONFIRMED_PAID: DocdataOrder.STATUS_PAID,
@@ -269,7 +270,7 @@ class Interface(object):
         """
         status = latest_ddpayment.status
         totals = report.approximateTotals
-        new_status = self.status_mapping.get(str(latest_payment_report.authorization), DocdataOrder.STATUS_UNKNOWN)
+        new_status = self.status_mapping.get(str(latest_payment_report.authorization.status), DocdataOrder.STATUS_UNKNOWN)
 
         # Some status mapping overrides.
         #
