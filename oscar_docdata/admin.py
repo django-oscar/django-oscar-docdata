@@ -34,9 +34,15 @@ class DocdataOrderAdmin(admin.ModelAdmin):
 
     cancel_confirmation_template = None
 
-    readonly_fields = (
+    edit_readonly_fields = (
         'merchant_order_id', 'order_key', 'total_gross_amount', 'status', 'language', 'currency', 'country',
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.pk:
+            return self.edit_readonly_fields
+        else:
+            return self.readonly_fields
 
     def get_urls(self):
         urls = super(DocdataOrderAdmin, self).get_urls()
