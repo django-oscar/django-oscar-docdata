@@ -66,7 +66,10 @@ class Interface(object):
             language = get_language()
 
         # May raise an DocdataCreateError exception
-        call_args = self.get_create_payment_args(order_number, total, user, language=language, description=description, profile=profile, **kwargs)
+        call_args = self.get_create_payment_args(
+            # Pass all as kwargs, make it easier for subclasses to override using *args, **kwargs and fetch all by name.
+            order_number=order_number, total=total, user=user, language=language, description=description, profile=profile, **kwargs
+        )
         createsuccess = self.client.create(**call_args)
 
         # Track order_key for local logging

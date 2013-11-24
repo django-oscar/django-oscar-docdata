@@ -223,7 +223,7 @@ class DocdataClient(object):
         paymentPreferences.profile = profile
         paymentPreferences.numberOfDaysToPay = days_to_pay
 
-        # Menu preferences are empty, as they are used for CSS file selection in the payment menu.
+        # Menu preferences are empty. They are used for CSS file selection in the payment menu.
         menuPreferences = self.client.factory.create('ns0:menuPreferences')
 
         # Execute create payment order request.
@@ -511,8 +511,11 @@ class Shopper(object):
     :type email: str
     :type language: str
     :type gender: str
+    :type date_of_birth: :class:`datetime.Date`
+    :type phone_number: str
+    :type mobile_phone_number: str
     """
-    def __init__(self, id, name, email, language, gender="U"):
+    def __init__(self, id, name, email, language, gender="U", date_of_birth=None, phone_number=None, mobile_phone_number=None):
         """
         :type name: Name
         """
@@ -520,12 +523,10 @@ class Shopper(object):
         self.name = name
         self.email = email
         self.language = language
-        self.gender = gender
-
-        # Not included:
-        #dateOfBirth = "yyyy-mm-dd"
-        #phoneNumber
-        #mobilePhoneNumber = "+316..."
+        self.gender = gender   # M (male), F (female), U (undefined)
+        self.date_of_birth = date_of_birth
+        self.phone_number = phone_number
+        self.mobile_phone_number = mobile_phone_number  # +316..
 
     def to_xml(self, factory):
         language_node = factory.create('ns0:language')
@@ -534,9 +535,12 @@ class Shopper(object):
         node = factory.create('ns0:shopper')
         node._id = self.id  # attribute, hence the ._id
         node.name = self.name.to_xml(factory)
-        node.gender = self.gender
+        node.gender = self.gender.upper() if self.gender else "U"
         node.language = language_node
         node.email = self.email
+        node.dateOfBirth = self.date_of_birth.isoformat()   # yyyy-mm-dd
+        node.phoneNumber = self.phone_number                # string50, must start with "+"
+        node.mobilePhoneNumber = self.mobile_phone_number   # string50, must start with "+"
         return node
 
 
@@ -565,7 +569,7 @@ class Address(object):
 
     :type street: unicode
     :type house_number: str
-    :type house_number_addition: str
+    :type house_number_addition: unicode
     :type postal_code: str
     :type city: unicode
     :type country_code: str
@@ -584,8 +588,8 @@ class Address(object):
 
         node = factory.create('ns0:address')
         node.street = self.street.decode('utf8')
-        node.houseNumber = self.house_number
-        node.houseNumberAddition = self.house_number_addition
+        node.houseNumber = self.house_number  #string35
+        node.houseNumberAddition = self.house_number_addition.decode('utf8') if self.house_number_addition else None
         node.postalCode = self.postal_code.replace(' ', '')  # Spaces aren't allowed in the Docdata postal code (type=NMTOKEN)
         node.city = self.city.decode('utf8')
         node.country = country

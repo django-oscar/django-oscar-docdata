@@ -16,14 +16,19 @@ class Facade(Interface):
     Most methods are just called directly on the Interface.
     """
 
-    def create_payment(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, **kwargs):
+    def create_payment(self, order_number, total, user, language=None, description=None, profile=None, **kwargs):
         """
         Start a new payment session / container.
         Becides the overwritten parameters, also provide:
 
+        :param total: The total price
+        :type total: :class:`oscar.core.prices.Price`
         :param billingaddress: The shipping address.
         :type billingaddress: :class:`oscar.apps.order.models.BillingAddress`
         """
+        if not profile:
+            profile = appsettings.DOCDATA_PROFILE
+
         try:
             order_key = super(Facade, self).create_payment(order_number, total, user, language=language, description=description, profile=profile, **kwargs)
         except DocdataCreateError as e:
@@ -37,23 +42,25 @@ class Facade(Interface):
 
 
 
-    def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, **kwargs):
+    def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=None, **kwargs):
         """
         The arguments for the createpayment call.
+        This is a separate method to be easily overwritable.
         """
         billingaddress = kwargs['billingaddress']
 
-        # Separate method to be easily overwritable.
-        if user.first_name and user.last_name:
-            shopper_name = Name(
-                first=user.first_name,
-                last=user.last_name
-            )
-        else:
-            shopper_name = Name(
-                first=billingaddress.first_name,
-                last=billingaddress.last_name
-            )
+        if not profile:
+            profile = appsettings.DOCDATA_PROFILE
+
+        shopper_name = Name(
+            first=user.first_name,
+            last=user.last_name
+        )
+
+        bill_to_name = Name(
+            first=billingaddress.first_name or user.first_name,
+            last=billingaddress.last_name or user.last_name
+        )
 
         return dict(
             order_id=order_number,
@@ -66,10 +73,10 @@ class Facade(Interface):
                 gender='U'
             ),
             bill_to=Destination(
-                shopper_name,
+                bill_to_name,
                 address=Address(
                     street=billingaddress.line1,            # NOTE: oscar has no street / housenumber fields!
-                    house_number='N/A',
+                    house_number='N/A',                     # Field is required! Could consider passing nbsp or line2 ('\xc2\xa0')
                     house_number_addition=None,
                     postal_code=billingaddress.postcode,
                     city=billingaddress.city,
