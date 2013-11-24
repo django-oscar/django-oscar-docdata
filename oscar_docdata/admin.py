@@ -35,7 +35,7 @@ class DocdataOrderAdmin(admin.ModelAdmin):
     cancel_confirmation_template = None
 
     edit_readonly_fields = (
-        'merchant_order_id', 'order_key', 'total_gross_amount', 'status', 'language', 'currency', 'country',
+        'merchant_order_id', 'order_key', 'total_gross_amount', 'currency', 'status', 'language', 'country',
     )
 
     def get_readonly_fields(self, request, obj=None):
