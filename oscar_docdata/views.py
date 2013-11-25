@@ -1,5 +1,5 @@
 import logging
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, Http404
 from django.views.generic import View
 from oscar.core.loading import get_class
 from oscar_docdata import appsettings
@@ -28,7 +28,7 @@ class UpdateOrderMixin(object):
         try:
             facade.update_order_by_key(order_key)
         except DocdataOrder.DoesNotExist:
-            return HttpResponseNotFound(u"Order '{0}' not found!".format(order_key), content_type='text/plain; charset=utf-8')
+            raise Http404(u"Order '{0}' not found!".format(order_key))
 
 
 class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
@@ -62,7 +62,10 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
     """
     def get(self, request, *args, **kwargs):
         order_key = self.get_order_key()
-        self.update_order(order_key)
+        try:
+            self.update_order(order_key)
+        except Http404 as e:
+            return HttpResponseNotFound(str(e), content_type='text/plain; charset=utf-8')
 
         # Return 200 as required by DocData when the status changed notification was consumed.
         return HttpResponse(u"ok, order updated", content_type='text/plain; charset=utf-8')
