@@ -1,3 +1,4 @@
+from decimal import Decimal as D
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from polymorphic import PolymorphicModel
@@ -35,10 +36,19 @@ class DocdataOrder(models.Model):
     status = models.CharField(_("Status"), max_length=50, choices=STATUS_CHOICES, default=STATUS_NEW)
     language = models.CharField(_("Language"), max_length=5, blank=True, default='en')
 
-    # Track
+    # Track sent information
     total_gross_amount = models.DecimalField(_("Total gross amount"), max_digits=15, decimal_places=2)
     currency = models.CharField(_("Currency"), max_length=10)
     country = models.CharField(_("Country_code"), max_length=2, null=True, blank=True)
+
+    # Track received information
+    total_registered = models.DecimalField(_("Total registered"), max_digits=15, decimal_places=2, default=D('0.00'))
+    total_shopper_pending = models.DecimalField(_("Total shopper pending"), max_digits=15, decimal_places=2, default=D('0.00'))
+    total_acquirer_pending = models.DecimalField(_("Total acquirer pending"), max_digits=15, decimal_places=2, default=D('0.00'))
+    total_acquirer_approved = models.DecimalField(_("Total acquirer approved"), max_digits=15, decimal_places=2, default=D('0.00'))
+    total_captured = models.DecimalField(_("Total captured"), max_digits=15, decimal_places=2, default=D('0.00'))
+    total_refunded = models.DecimalField(_("Total refunded"), max_digits=15, decimal_places=2, default=D('0.00'))
+    total_charged_back = models.DecimalField(_("Total changed back"), max_digits=15, decimal_places=2, default=D('0.00'))
 
     # Internal info.
     created = models.DateTimeField(_("created"), auto_now_add=True)
@@ -63,6 +73,8 @@ class DocdataOrder(models.Model):
 class DocdataPayment(PolymorphicModel):
     """
     A reported Docdata payment.
+    This is a summarized version of a Docdata payment transaction,
+    as returned by the status API call.
 
     Some payment types have additional fields, which are stored as subclass.
     """
@@ -74,6 +86,13 @@ class DocdataPayment(PolymorphicModel):
 
     # The payment method id from Docdata (e.g. IDEAL, MASTERCARD, etc)
     payment_method = models.CharField(max_length=60, default='', blank=True)
+
+    # Track the various amounts associated with this source
+    confidence_level = models.CharField(_("Confidence level"), max_length=30, default='', editable=False)
+    amount_allocated = models.DecimalField(_("Amount Allocated"), decimal_places=2, max_digits=12, default=D('0.00'), editable=False)
+    amount_debited = models.DecimalField(_("Amount Debited"), decimal_places=2, max_digits=12, default=D('0.00'), editable=False)
+    amount_refunded = models.DecimalField(_("Amount Refunded"), decimal_places=2, max_digits=12, default=D('0.00'), editable=False)
+    amount_chargeback = models.DecimalField(_("Amount Changed back"), decimal_places=2, max_digits=12, default=D('0.00'), editable=False)
 
     # Internal info.
     created = models.DateTimeField(_("created"), auto_now_add=True)
@@ -88,6 +107,8 @@ class DocdataPayment(PolymorphicModel):
         verbose_name_plural = _("Payments")
 
 
+# NOTE: currently unused.
+# DirectDebit is used for periodic transfers (e.g. "Automatische incasso" in The Netherlands)
 class DocdataDirectDebitPayment(DocdataPayment):
     """
     Web direct debit direct payment.

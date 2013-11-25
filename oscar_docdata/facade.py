@@ -10,6 +10,7 @@ from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
 from oscar_docdata.interface import Interface
 
 Order = get_model('order', 'Order')
+SourceType = get_model('payment', 'SourceType')
 
 
 class Facade(Interface):
@@ -22,7 +23,7 @@ class Facade(Interface):
     def create_payment(self, order_number, total, user, language=None, description=None, profile=None, **kwargs):
         """
         Start a new payment session / container.
-        Becides the overwritten parameters, also provide:
+        Besides the overwritten parameters, also provide:
 
         :param total: The total price
         :type total: :class:`oscar.core.prices.Price`
@@ -108,3 +109,11 @@ class Facade(Interface):
 
         # Send the signal
         super(Facade, self).order_status_changed(docdataorder, old_status, new_status)
+
+
+    def get_source_type(self):
+        """
+        Convenience method, return the canonical SourceType for Docdata payment events.
+        """
+        source_type, _ = SourceType.objects.get_or_create(code='docdata', defaults={'name': "Docdata Payments"})
+        return source_type

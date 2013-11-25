@@ -15,7 +15,15 @@ from oscar_docdata.models import DocdataOrder, DocdataPayment
 
 class DocdataPaymentInline(admin.TabularInline):
     model = DocdataPayment
-    readonly_fields = ('payment_id', 'status', 'payment_method')
+    readonly_fields = (
+        'payment_id',
+        'status',
+        'amount_debited',
+        'amount_refunded',
+        'amount_chargeback',
+        'payment_method',
+        'confidence_level',
+    )
     extra = 0
     can_delete = False
 
@@ -36,6 +44,33 @@ class DocdataOrderAdmin(admin.ModelAdmin):
 
     edit_readonly_fields = (
         'merchant_order_id', 'order_key', 'total_gross_amount', 'currency', 'status', 'language', 'country',
+        'total_registered',
+        'total_shopper_pending',
+        'total_acquirer_pending',
+        'total_acquirer_approved',
+        'total_captured',
+        'total_refunded',
+        'total_charged_back',
+    )
+    fieldsets = (
+        (None, {
+            'fields': (
+                'merchant_order_id', 'order_key', 'total_gross_amount', 'currency', 'status', 'language', 'country',
+            ),
+            'classes': ('wide',),
+        }),
+        (_("Amounts"), {
+            'fields': (
+                'total_registered',
+                'total_shopper_pending',
+                'total_acquirer_pending',
+                'total_acquirer_approved',
+                'total_captured',
+                'total_refunded',
+                'total_charged_back',
+            ),
+            'classes': ('wide',),
+        }),
     )
 
     def get_readonly_fields(self, request, obj=None):

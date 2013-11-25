@@ -5,12 +5,13 @@ This module is Oscar agnostic, and can be used in any other project.
 The Oscar specific code is in the facade.
 """
 import logging
+from decimal import Decimal as D
 from django.utils.translation import get_language
 from oscar_docdata import appsettings
 from oscar_docdata.exceptions import DocdataException
 from oscar_docdata.gateway import DocdataClient
 from oscar_docdata.models import DocdataOrder, DocdataPayment
-from oscar_docdata.signals import order_status_changed
+from oscar_docdata.signals import order_status_changed, payment_added, payment_updated
 
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class Interface(object):
         return createsuccess.order_key
 
 
-    def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE):
+    def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, **kwargs):
         """
         The arguments to pass to create a payment.
         This is implementation-specific, hence not implemented here.
@@ -119,7 +120,8 @@ class Interface(object):
         # This can raise an exception.
         startsuccess = self.client.start(order_key, payment, payment_method=payment_method, amount=amount)
 
-        self._save_status(order, DocdataOrder.STATUS_IN_PROGRESS)
+        self._set_status(order, DocdataOrder.STATUS_IN_PROGRESS)
+        order.save()
 
         # Not updating the DocdataPayment objects here,
         # instead just wait for Docdata to call the status view.
@@ -172,36 +174,63 @@ class Interface(object):
             logger.exception("Failed to fetch docdata status!")
             raise
 
-        # Can't update much yet, status is empty.
-        if not hasattr(statusreply.report, 'payment'):
-            return
-
-        # TODO: create Oscar PaymentEvent?
-
-        # Store all report lines
-        latest_ddpayment, latest_payment = self._store_report_lines(order, statusreply.report)
-
-        # Update status
-        new_status = self._process_status(order, statusreply.report, latest_ddpayment, latest_payment)
-
-        # Detect a nasty error condition that needs to be manually fixed.
-        total_registered = statusreply.report.approximateTotals.totalRegistered
-        total_gross_cents = int(order.total_gross_amount * 100)
-        if new_status != DocdataOrder.STATUS_CANCELLED and total_registered != total_gross_cents:
-            logger.error("Order {0} total: {1} does not equal Total Registered: {2}.".format(order.order_key, total_gross_cents, total_registered))
-
-        self._save_status(order, new_status)
-
-        # Set the payment fee when Payment status is pending or paid.
-        #if order.status == DocdataOrder.STATUS_PENDING or order.status == DocdataOrder.STATUS_PAID:
-        #    self.update_payment_fee(order, order.latest_docdata_payment.payment_method, 'COWRY_DOCDATA_FEES',
-        #                            docdata_payment_logger)
+        # Store the new status
+        self._store_report(order, statusreply.report)
         return order
+
+
+    def _store_report(self, order, report):
+        """
+        Store the retrieved status report in the order object.
+        """
+        if hasattr(report, 'payment'):
+            # Store all report lines, make an analytics of the new status
+            latest_ddpayment, latest_payment = self._store_report_lines(order, report)
+            new_status = self._check_status(order, report, latest_ddpayment, latest_payment)
+        else:
+            new_status = DocdataOrder.STATUS_NEW
+
+        # Store status
+        old_status = order.status
+        status_changed = self._set_status(order, new_status)
+
+        # Store totals
+        totals = report.approximateTotals
+        order.total_registered = totals.totalRegistered / 100.0
+        order.total_shopper_pending = totals.totalShopperPending / 100.0
+        order.total_acquirer_pending = totals.totalAcquirerPending / 100.0
+        order.total_acquirer_approved = totals.totalAcquirerApproved / 100.0
+        order.total_captured = totals.totalCaptured / 100.0
+        order.total_refunded = totals.totalRefunded / 100.0
+        order.total_charged_back = totals.totalChargedback / 100.0
+
+        order.save()
+
+        if status_changed:
+            self.order_status_changed(order, old_status, order.status)
+
+
+    def _set_status(self, order, new_status):
+        """
+        Changes the payment status to new_status and sends a signal about the change.
+        """
+        old_status = order.status
+        if old_status != new_status:
+            logger.info("Order {0} status changed {1} -> {2}".format(order.order_key, old_status, new_status))
+
+            if new_status not in dict(DocdataOrder.STATUS_CHOICES):
+                new_status = DocdataOrder.STATUS_UNKNOWN
+
+            order.status = new_status
+            return True
+        else:
+            return False
 
 
     def _store_report_lines(self, order, report):
         """
         Store the status report lines from the StatusReply.
+        Each line represents a payment event.
         """
         latest_ddpayment = None
         latest_payment = None
@@ -222,6 +251,7 @@ class Interface(object):
             # Find or create the correct payment object for current report.
             payment_class = DocdataPayment #TODO: self.id_to_model_mapping[order.payment_method_id]
             updated = False
+            added = False
 
             try:
                 ddpayment = payment_class.objects.select_for_update().get(payment_id=str(payment_report.id))
@@ -232,7 +262,7 @@ class Interface(object):
                     payment_id=str(payment_report.id),
                     payment_method=str(payment_report.paymentMethod),
                 )
-                updated = True
+                added = True
 
             if not payment_report.paymentMethod == ddpayment.payment_method:
                 # Payment method change??
@@ -244,24 +274,54 @@ class Interface(object):
                 ddpayment.payment_method = str(payment_report.paymentMethod)
                 updated = True
 
-            new_status = str(payment_report.authorization.status)
-            if ddpayment.status != new_status:
-                # Status change!
-                logger.info("Docdata payment status changed. payment={0} status: {1} -> {2}".format(
-                    payment_report.id, ddpayment.status, new_status
-                ))
+            # Store the totals
+            authorization = payment_report.authorization
+            old_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
 
-                if new_status not in DocdataClient.DOCUMENTED_STATUS_VALUES:
-                    # Note: We continue to process the payment status change on this error.
-                    logger.warn("Received unknown payment status from Docdata. payment={0}, status={1}".format(
-                        payment_report.id, new_status
-                    ))
+            auth_status = str(authorization.status)
+            ddpayment.confidence_level = authorization.confidenceLevel
 
-                ddpayment.status = new_status
+            if auth_status == 'AUTHORIZED':
+                # NOTE: currencies ignored here.
+                ddpayment.amount_debited = _to_decimal(authorization.amount)               # TODO: is this the right field??
+            if hasattr(authorization, 'capture'):
+                ddpayment.amount_allocated = _to_decimal(authorization.capture[0].amount)  # TODO: is this the right field??
+            if hasattr(authorization, 'refund'):
+                ddpayment.amount_refunded = _to_decimal(authorization.refund[0].amount)
+            if hasattr(authorization, 'chargeback'):
+                ddpayment.amount_chargeback = _to_decimal(authorization.chargeback[0].amount)
+
+            # Track changes
+            new_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
+            if old_values != new_values:
                 updated = True
 
-            if updated:
+            # Detect status change
+
+            if ddpayment.status != auth_status:
+                # Status change!
+                logger.info("Docdata payment status changed. payment={0} status: {1} -> {2}".format(
+                    payment_report.id, ddpayment.status, auth_status
+                ))
+
+                if auth_status not in DocdataClient.DOCUMENTED_STATUS_VALUES:
+                    # Note: We continue to process the payment status change on this error.
+                    logger.warn("Received unknown payment status from Docdata. payment={0}, status={1}".format(
+                        payment_report.id, auth_status
+                    ))
+
+                ddpayment.status = auth_status
+                updated = True
+
+            if added or updated:
                 ddpayment.save()
+
+                # Fire events so payment transactions can be created in Oscar.
+                # This can be used to call source.transactions.create(..) for example.
+                if added:
+                    payment_added.send(sender=DocdataPayment, order=order, payment=ddpayment)
+                else:
+                    payment_updated.send(sender=DocdataPayment, order=order, payment=ddpayment)
 
             latest_ddpayment = ddpayment
             latest_payment = payment_report
@@ -269,9 +329,9 @@ class Interface(object):
         return (latest_ddpayment, latest_payment)
 
 
-    def _process_status(self, order, report, latest_ddpayment, latest_payment_report):
+    def _check_status(self, order, report, latest_ddpayment, latest_payment_report):
         """
-        Perform any events related to the status change.
+        Perform any checks related to the status change.
         """
         status = latest_ddpayment.status
         totals = report.approximateTotals
@@ -293,7 +353,9 @@ class Interface(object):
             if totals.totalRegistered == totals.totalCaptured:
                 payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
 
-                if payment_sum > 0:
+                if payment_sum >= totals.totalRegistered:
+                    # With all capture changes etc.. it's still what was registered.
+                    # Full amount is paid.
                     new_status = DocdataOrder.STATUS_PAID
                 elif payment_sum == 0:
                     logger.info("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
@@ -302,10 +364,11 @@ class Interface(object):
 
                     registered_captured_logged = True
 
-                    # TODO: Add chargeback fee somehow (currently E0.50).
+                    # See what happened with the last payment addition
+                    authorization = latest_payment_report.authorization
 
                     # Chargeback.
-                    authorization = latest_payment_report.authorization
+                    # TODO: Add chargeback fee somehow (currently E0.50).
                     if totals.totalCaptured == totals.totalChargedback:
                         if hasattr(authorization, 'chargeback') and len(authorization.chargeback) > 0:
                             logger.info("Order {0} chargedback: {1}".format(order.order_key, authorization.chargeback[0].reason))
@@ -334,6 +397,13 @@ class Interface(object):
             if not registered_captured_logged:
                 logger.info("Total {0} Registered: {1} Total Captured: {2}".format(order.order_key, totals.totalRegistered, totals.totalCaptured))
 
+
+        # Detect a nasty error condition that needs to be manually fixed.
+        total_registered = long(totals.totalRegistered)
+        total_gross_cents = long(order.total_gross_amount * 100)
+        if new_status != DocdataOrder.STATUS_CANCELLED and total_registered != total_gross_cents:
+            logger.error("Order {0} total: {1} does not equal Total Registered: {2}.".format(order.order_key, total_gross_cents, total_registered))
+
         return new_status
 
         # TODO Use status change log to investigate if these overrides are needed.
@@ -348,23 +418,6 @@ class Interface(object):
         #         new_status = 'cancelled'
 
 
-    def _save_status(self, order, new_status):
-        """
-        Changes the payment status to new_status and sends a signal about the change.
-        """
-        old_status = order.status
-        if old_status != new_status:
-            logger.info("Order {0} status changed {1} -> {2}".format(order.order_key, old_status, new_status))
-
-            if new_status not in dict(DocdataOrder.STATUS_CHOICES):
-                new_status = DocdataOrder.STATUS_UNKNOWN
-
-            order.status = new_status
-            order.save()
-
-            self.order_status_changed(order, old_status, new_status)
-
-
     def order_status_changed(self, docdataorder, old_status, new_status):
         """
         Notify that the order status changed.
@@ -373,3 +426,8 @@ class Interface(object):
         # Note that using a custom Facade class in your project doesn't help much,
         # as the Facade is also used by the default views.
         order_status_changed.send(sender=DocdataOrder, instance=docdataorder, old_status=old_status, new_status=new_status)
+
+
+def _to_decimal(amount):
+    # Convert XML amount to decimal
+    return D(long(amount.value) / 100)
