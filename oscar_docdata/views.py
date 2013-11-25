@@ -47,6 +47,8 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
     def get(self, request, *args, **kwargs):
         # Directly query the latest state from Docdata
         order_key = self.get_order_key()
+        logger.info("Returned from Docdata for {0}".format(order_key))
+
         self.order = self.update_order(order_key)
 
         # Allow other code to perform actions, e.g. send a confirmation email.
@@ -74,6 +76,8 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
     """
     def get(self, request, *args, **kwargs):
         order_key = self.get_order_key()
+        logger.info("Got Docdata status changed notification for {0}".format(order_key))
+
         try:
             self.order = self.update_order(order_key)
         except Http404 as e:
