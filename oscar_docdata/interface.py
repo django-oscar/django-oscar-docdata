@@ -196,13 +196,13 @@ class Interface(object):
 
         # Store totals
         totals = report.approximateTotals
-        order.total_registered = totals.totalRegistered / 100.0
-        order.total_shopper_pending = totals.totalShopperPending / 100.0
-        order.total_acquirer_pending = totals.totalAcquirerPending / 100.0
-        order.total_acquirer_approved = totals.totalAcquirerApproved / 100.0
-        order.total_captured = totals.totalCaptured / 100.0
-        order.total_refunded = totals.totalRefunded / 100.0
-        order.total_charged_back = totals.totalChargedback / 100.0
+        order.total_registered = D(totals.totalRegistered) / 100
+        order.total_shopper_pending = D(totals.totalShopperPending) / 100
+        order.total_acquirer_pending = D(totals.totalAcquirerPending) / 100
+        order.total_acquirer_approved = D(totals.totalAcquirerApproved) / 100
+        order.total_captured = D(totals.totalCaptured) / 100
+        order.total_refunded = D(totals.totalRefunded) / 100
+        order.total_charged_back = D(totals.totalChargedback) / 100
 
         order.save()
 
@@ -430,4 +430,4 @@ class Interface(object):
 
 def _to_decimal(amount):
     # Convert XML amount to decimal
-    return D(long(amount.value) / 100)
+    return D(long(amount.value)) / 100
