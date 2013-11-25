@@ -13,8 +13,13 @@ OrderPlacementMixin = get_class('checkout.mixins', 'OrderPlacementMixin')
 
 
 class UpdateOrderMixin(object):
+    """
+    Base mixin for updating the order from the API or return URL.
+    """
+
     # What docdata calls the order_id, we call the order_key
     order_key_arg = 'order_id'
+    facade_class = Facade
 
     def get_order_key(self):
         try:
@@ -24,7 +29,7 @@ class UpdateOrderMixin(object):
 
     def update_order(self, order_key):
         # Ask the facade to request the status, and update the order accordingly.
-        facade = Facade()
+        facade = self.facade_class()
 
         try:
             return facade.update_order_by_key(order_key)
