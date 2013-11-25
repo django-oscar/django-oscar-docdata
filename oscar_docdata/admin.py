@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
-from oscar_docdata.exceptions import DocdataCancelError
+from oscar_docdata.exceptions import DocdataCancelError, DocdataStatusError
 from oscar_docdata.facade import Facade
 from oscar_docdata.models import DocdataOrder, DocdataPayment
 
@@ -92,6 +92,7 @@ class DocdataOrderAdmin(admin.ModelAdmin):
         """
         Fetch the latest status from docdata.
         """
+        opts = self.model._meta
         order = self.get_object(request, unquote(object_id))
         if not self.has_change_permission(request, order):
             raise PermissionDenied
@@ -99,10 +100,14 @@ class DocdataOrderAdmin(admin.ModelAdmin):
             raise Http404("No order found!")
 
         # Perform update.
-        facade = Facade()
-        facade.update_order(order)
-
-        self.message_user(request, u"Order status is updated")
+        try:
+            facade = Facade()
+            facade.update_order(order)
+        except DocdataStatusError as e:
+            self.message_user(request, e.value, level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:%s_%s_change' % (opts.app_label, opts.module_name), args=(object_id,), current_app=self.admin_site.name))
+        else:
+            self.message_user(request, u"Order status is updated")
 
         info = self.model._meta.app_label, self.model._meta.module_name
         change_view = 'admin:%s_%s_change' % info
