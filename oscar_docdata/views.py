@@ -45,9 +45,11 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
     redirect_url = appsettings.DOCDATA_REDIRECT_URL
 
     def get(self, request, *args, **kwargs):
+        # Directly query the latest state from Docdata
         order_key = self.get_order_key()
         self.order = self.update_order(order_key)
 
+        # Allow other code to perform actions, e.g. send a confirmation email.
         responses = return_view_called.send(sender=self.__class__, request=request, order=self.order)
 
         # Redirect to thank you page
