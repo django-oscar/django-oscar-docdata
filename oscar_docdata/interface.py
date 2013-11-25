@@ -425,7 +425,7 @@ class Interface(object):
         """
         # Note that using a custom Facade class in your project doesn't help much,
         # as the Facade is also used by the default views.
-        order_status_changed.send(sender=DocdataOrder, instance=docdataorder, old_status=old_status, new_status=new_status)
+        order_status_changed.send(sender=DocdataOrder, order=docdataorder, old_status=old_status, new_status=new_status)
 
 
 def _to_decimal(amount):
