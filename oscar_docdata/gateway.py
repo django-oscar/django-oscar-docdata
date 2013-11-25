@@ -538,7 +538,7 @@ class Shopper(object):
         node.gender = self.gender.upper() if self.gender else "U"
         node.language = language_node
         node.email = self.email
-        node.dateOfBirth = self.date_of_birth.isoformat()   # yyyy-mm-dd
+        node.dateOfBirth = self.date_of_birth.isoformat() if self.date_of_birth else None   # yyyy-mm-dd
         node.phoneNumber = self.phone_number                # string50, must start with "+"
         node.mobilePhoneNumber = self.mobile_phone_number   # string50, must start with "+"
         return node
