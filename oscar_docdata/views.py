@@ -1,5 +1,6 @@
 import logging
 from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, Http404
+from django.utils import translation
 from django.views.generic import View
 from oscar.core.loading import get_class
 from oscar_docdata import appsettings
@@ -26,7 +27,7 @@ class UpdateOrderMixin(object):
         facade = Facade()
 
         try:
-            facade.update_order_by_key(order_key)
+            return facade.update_order_by_key(order_key)
         except DocdataOrder.DoesNotExist:
             raise Http404(u"Order '{0}' not found!".format(order_key))
 
@@ -39,10 +40,11 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
 
     def get(self, request, *args, **kwargs):
         order_key = self.get_order_key()
-        self.update_order(order_key)
+        self.order = self.update_order(order_key)
 
         # Redirect to thank you page
-        return HttpResponseRedirect(self.get_redirect_url())
+        with translation.override(self.order.language):                # Allow i18n_patterns() to work properly
+            return HttpResponseRedirect(str(self.get_redirect_url()))  # force evaluation of reverse_lazy()
 
     def get_redirect_url(self):
         return self.redirect_url

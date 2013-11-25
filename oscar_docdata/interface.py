@@ -155,6 +155,7 @@ class Interface(object):
             raise
 
         self.update_order(order)
+        return order
 
         #payments.update_payment_status(payment, status_changed_notification=True)
 
@@ -195,6 +196,7 @@ class Interface(object):
         #if order.status == DocdataOrder.STATUS_PENDING or order.status == DocdataOrder.STATUS_PAID:
         #    self.update_payment_fee(order, order.latest_docdata_payment.payment_method, 'COWRY_DOCDATA_FEES',
         #                            docdata_payment_logger)
+        return order
 
 
     def _store_report_lines(self, order, report):
