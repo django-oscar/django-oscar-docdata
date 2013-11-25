@@ -5,6 +5,10 @@ from django.dispatch import Signal
 order_status_changed = Signal(providing_args=["order", "old_status", "new_status"])
 
 
+payment_updated = Signal(providing_args=['order', 'payment'])
+
 payment_added = Signal(providing_args=['order', 'payment'])
 
-payment_updated = Signal(providing_args=['order', 'payment'])
+return_view_called = Signal(providing_args=['request', 'order'])
+
+status_changed_view_called = Signal(providing_args=['request', 'order'])

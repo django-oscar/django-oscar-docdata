@@ -6,6 +6,7 @@ from oscar.core.loading import get_class
 from oscar_docdata import appsettings
 from oscar_docdata.facade import Facade
 from oscar_docdata.models import DocdataOrder
+from oscar_docdata.signals import return_view_called, status_changed_view_called
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,8 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
         order_key = self.get_order_key()
         self.order = self.update_order(order_key)
 
+        responses = return_view_called.send(sender=self.__class__, request=request, order=self.order)
+
         # Redirect to thank you page
         with translation.override(self.order.language):                # Allow i18n_patterns() to work properly
             return HttpResponseRedirect(str(self.get_redirect_url()))  # force evaluation of reverse_lazy()
@@ -70,9 +73,11 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
     def get(self, request, *args, **kwargs):
         order_key = self.get_order_key()
         try:
-            self.update_order(order_key)
+            self.order = self.update_order(order_key)
         except Http404 as e:
             return HttpResponseNotFound(str(e), content_type='text/plain; charset=utf-8')
+
+        responses = status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
 
         # Return 200 as required by DocData when the status changed notification was consumed.
         return HttpResponse(u"ok, order updated", content_type='text/plain; charset=utf-8')
