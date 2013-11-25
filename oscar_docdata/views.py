@@ -19,6 +19,7 @@ class UpdateOrderMixin(object):
     """
 
     # What docdata calls the order_id, we call the order_key
+    # Docdata uses both the order_key and merchant_order_id in the requests, depending on the view.
     order_key_arg = 'order_id'
     facade_class = Facade
 
@@ -28,14 +29,13 @@ class UpdateOrderMixin(object):
         except KeyError:
             return HttpResponseBadRequest(u"Missing key parameter", content_type='text/plain; charset=utf-8')
 
-    def update_order(self, order_key):
+    def get_order(self, order_key):
+        raise NotImplementedError()
+
+    def update_order(self, order):
         # Ask the facade to request the status, and update the order accordingly.
         facade = self.facade_class()
-
-        try:
-            return facade.update_order_by_key(order_key)
-        except DocdataOrder.DoesNotExist:
-            raise Http404(u"Order '{0}' not found!".format(order_key))
+        facade.update_order(order)
 
 
 class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
@@ -49,7 +49,8 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
         order_key = self.get_order_key()
         logger.info("Returned from Docdata for {0}".format(order_key))
 
-        self.order = self.update_order(order_key)
+        self.order = self.get_order(order_key)   # this is the docdata id.
+        self.update_order(self.order)
 
         # Allow other code to perform actions, e.g. send a confirmation email.
         responses = return_view_called.send(sender=self.__class__, request=request, order=self.order)
@@ -57,6 +58,17 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
         # Redirect to thank you page
         with translation.override(self.order.language):                # Allow i18n_patterns() to work properly
             return HttpResponseRedirect(str(self.get_redirect_url()))  # force evaluation of reverse_lazy()
+
+    def get_order(self, order_key):
+        """
+        Update the status of an order, by fetching the latest state from docdata.
+        """
+        # Try to find the order.
+        try:
+            return DocdataOrder.objects.get(order_key=order_key)
+        except DocdataOrder.DoesNotExist:
+            logger.error("Order key '{0}' not found to update payment status.".format(order_key))
+            raise Http404(u"Order key '{0}' not found!".format(order_key))
 
     def get_redirect_url(self):
         return self.redirect_url
@@ -79,11 +91,25 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
         logger.info("Got Docdata status changed notification for {0}".format(order_key))
 
         try:
-            self.order = self.update_order(order_key)
+            self.order = self.get_order(order_key)  # Inconsistent, this call uses the merchant_order_id
         except Http404 as e:
             return HttpResponseNotFound(str(e), content_type='text/plain; charset=utf-8')
+
+        self.update_order(self.order)
 
         responses = status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
 
         # Return 200 as required by DocData when the status changed notification was consumed.
         return HttpResponse(u"ok, order updated", content_type='text/plain; charset=utf-8')
+
+
+    def get_order(self, merchant_order_id):
+        """
+        Update the status of an order, by fetching the latest state from docdata.
+        """
+        # Try to find the order.
+        try:
+            return DocdataOrder.objects.get(merchant_order_id=merchant_order_id)
+        except DocdataOrder.DoesNotExist:
+            logger.error("Order id '{0}' not found to update payment status.".format(merchant_order_id))
+            raise Http404(u"Order id '{0}' not found!".format(merchant_order_id))

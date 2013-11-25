@@ -145,23 +145,6 @@ class Interface(object):
         self.update_order(order)
 
 
-    def update_order_by_key(self, order_key):
-        """
-        Update the status of an order, by fetching the latest state from docdata.
-        """
-        # Try to find the order.
-        try:
-            order = DocdataOrder.objects.get(order_key=order_key)
-        except DocdataOrder.DoesNotExist:
-            logger.error("Order '{0}' not found to update payment status.".format(order_key))
-            raise
-
-        self.update_order(order)
-        return order
-
-        #payments.update_payment_status(payment, status_changed_notification=True)
-
-
     def update_order(self, order):
         """
         :type order: DocdataOrder
@@ -176,7 +159,6 @@ class Interface(object):
 
         # Store the new status
         self._store_report(order, statusreply.report)
-        return order
 
 
     def _store_report(self, order, report):
