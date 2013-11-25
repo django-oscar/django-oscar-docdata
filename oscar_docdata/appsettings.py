@@ -23,6 +23,14 @@ DOCDATA_DAYS_TO_PAY = getattr(settings, 'DOCDATA_DAYS_TO_PAY', 7)
 # The default URL to redirect to. Defaults to a django-oscar view, but it can be any view of your choice.
 DOCDATA_REDIRECT_URL = getattr(settings, 'DOCDATA_REDIRECT_URL', reverse_lazy('checkout:thank-you'))
 
+# Translate the docdata order status to the configured OSCAR_ORDER_STATUS_PIPELINE
+# If a value is missing, the raw DocdataOrder status value will be inserted.
+# Possible values are: new, in_progress, paid, changed_back, cancelled, pending, refunded, unknown
+DOCDATA_ORDER_STATUS_MAPPING = getattr(settings, 'DOCDATA_ORDER_STATUS_MAPPING', {})
+
+# Native oscar setting:
+OSCAR_ORDER_STATUS_CASCADE = getattr(settings, 'OSCAR_ORDER_STATUS_CASCADE', {})
+
 # The list of known issuers (banks) for iDEAL
 DOCDATA_IDEAL_ISSUERS = getattr(settings, 'DOCDATA_IDEAL_ISSUERS', {
     '0081': 'Fortis',

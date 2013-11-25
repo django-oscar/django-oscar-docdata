@@ -1,12 +1,15 @@
 """
 Bridging module between Oscar and the gateway module (which is Oscar agnostic)
 """
+from django.db.models import get_model
 from django.utils.translation import get_language
 from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
 from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
 from oscar_docdata.interface import Interface
+
+Order = get_model('order', 'Order')
 
 
 class Facade(Interface):
@@ -86,3 +89,22 @@ class Facade(Interface):
             description=description,
             profile=profile
         )
+
+
+    def order_status_changed(self, docdataorder, old_status, new_status):
+        """
+        The order status changed.
+        """
+        project_status = appsettings.DOCDATA_ORDER_STATUS_MAPPING.get(new_status, new_status)
+        cascade = appsettings.OSCAR_ORDER_STATUS_CASCADE.get(project_status, None)
+
+        # Update the order in Oscar
+        # Not using Order.set_status(), forcefully set it to the current situation.
+        order = Order.objects.get(number=docdataorder.merchant_order_id)
+        order.status = project_status
+        if cascade:
+            order.lines.all().update(status=cascade)
+        order.save()
+
+        # Send the signal
+        super(Facade, self).order_status_changed(docdataorder, old_status, new_status)

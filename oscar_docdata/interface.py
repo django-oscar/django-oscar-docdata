@@ -6,9 +6,9 @@ The Oscar specific code is in the facade.
 """
 import logging
 from django.utils.translation import get_language
-from oscar_docdata.gateway import DocdataClient
-from oscar_docdata.exceptions import DocdataException
 from oscar_docdata import appsettings
+from oscar_docdata.exceptions import DocdataException
+from oscar_docdata.gateway import DocdataClient
 from oscar_docdata.models import DocdataOrder, DocdataPayment
 from oscar_docdata.signals import order_status_changed
 
@@ -362,4 +362,14 @@ class Interface(object):
             order.status = new_status
             order.save()
 
-            order_status_changed.send(sender=DocdataOrder, instance=order, old_status=old_status, new_status=new_status)
+            self.order_status_changed(order, old_status, new_status)
+
+
+    def order_status_changed(self, docdataorder, old_status, new_status):
+        """
+        Notify that the order status changed.
+        This function can be extended by inheriting the Facade class.
+        """
+        # Note that using a custom Facade class in your project doesn't help much,
+        # as the Facade is also used by the default views.
+        order_status_changed.send(sender=DocdataOrder, instance=docdataorder, old_status=old_status, new_status=new_status)
