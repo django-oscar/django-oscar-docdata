@@ -10,23 +10,23 @@ class DocdataOrder(models.Model):
     """
     # Simplified internal status codes.
     # Lowercased on purpose to avoid mixing the statuses together.
-    STATUS_NEW = 'new'
-    STATUS_IN_PROGRESS = 'in_progress'
-    STATUS_PAID = 'paid'
-    STATUS_CHARGED_BACK = 'changed_back'
-    STATUS_CANCELLED = 'cancelled'
-    STATUS_PENDING = 'pending'
-    STATUS_REFUNDED = 'refunded'
-    STATUS_UNKNOWN = 'unknown'
+    STATUS_NEW = 'new'                    # Initial state
+    STATUS_IN_PROGRESS = 'in_progress'    # In the redirect phase
+    STATUS_PENDING = 'pending'            # Waiting for user to complete payment (e.g. credit cards)
+    STATUS_PAID = 'paid'                  # End of story, paid!
+    STATUS_CANCELLED = 'cancelled'        # End of story, cancelled
+    STATUS_CHARGED_BACK = 'changed_back'  # End of story, consumer asked for charge back
+    STATUS_REFUNDED = 'refunded'          # End of story, refunded, merchant refunded
+    STATUS_UNKNOWN = 'unknown'            # Help!
 
     STATUS_CHOICES = (
         (STATUS_NEW, _("New")),
         (STATUS_IN_PROGRESS, _("In Progress")),
         (STATUS_PENDING, _("Pending")),
         (STATUS_PAID, _("Paid")),
+        (STATUS_CANCELLED, _("Cancelled")),
         (STATUS_CHARGED_BACK, _("Charged back")),
         (STATUS_REFUNDED, _("Refunded")),
-        (STATUS_CANCELLED, _("Cancelled")),
         (STATUS_UNKNOWN, _("Unknown")),
     )
 

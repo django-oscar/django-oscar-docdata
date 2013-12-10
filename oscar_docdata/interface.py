@@ -24,7 +24,7 @@ class Interface(object):
     # TODO: is this really needed?
     status_mapping = {
         DocdataClient.STATUS_NEW: DocdataOrder.STATUS_NEW,
-        DocdataClient.STATUS_STARTED: DocdataOrder.STATUS_IN_PROGRESS,
+        DocdataClient.STATUS_STARTED: DocdataOrder.STATUS_NEW,
         DocdataClient.STATUS_REDIRECTED_FOR_AUTHENTICATION: DocdataOrder.STATUS_IN_PROGRESS,
         DocdataClient.STATUS_AUTHORIZED: DocdataOrder.STATUS_PENDING,
         DocdataClient.STATUS_AUTHORIZATION_REQUESTED: DocdataOrder.STATUS_PENDING,
