@@ -8,7 +8,6 @@ import logging
 from decimal import Decimal as D
 from django.utils.translation import get_language
 from oscar_docdata import appsettings
-from oscar_docdata.exceptions import DocdataException
 from oscar_docdata.gateway import DocdataClient
 from oscar_docdata.models import DocdataOrder, DocdataPayment
 from oscar_docdata.signals import order_status_changed, payment_added, payment_updated
@@ -134,12 +133,8 @@ class Interface(object):
         """
         Cancel the order.
         """
-        try:
-            client = DocdataClient()
-            client.cancel(order.order_key)
-        except DocdataException:
-            logger.exception("Failed to cancel docdata order!")
-            raise
+        client = DocdataClient()
+        client.cancel(order.order_key)  # Can bail out with an exception (already logged)
 
         # Let docdata be the master.
         self.update_order(order)
@@ -150,12 +145,8 @@ class Interface(object):
         :type order: DocdataOrder
         """
         # Fetch the latest status
-        try:
-            client = DocdataClient()
-            statusreply = client.status(order.order_key)
-        except DocdataException:
-            logger.exception("Failed to fetch docdata status!")
-            raise
+        client = DocdataClient()
+        statusreply = client.status(order.order_key)  # Can bail out with an exception (already logged)
 
         # Store the new status
         self._store_report(order, statusreply.report)
