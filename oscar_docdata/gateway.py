@@ -406,8 +406,10 @@ class DocdataClient(object):
             return_url = reverse('return_url', current_app='oscar_docdata')
 
         # Add order_id= parameter to the URL
-        url_format = '{0}&order_id={1}' if '?' in return_url else '{0}?order_id={1}'
-        return_url = url_format.format(return_url, order_key)
+        if '?' in return_url:
+            url_format = '{0}&callback={callback}&order_id={order_id}'
+        else:
+            url_format = '{0}?callback={callback}&order_id={order_id}'
 
         # Make sure URLs are absolute.
         if not '://' in return_url or return_url.startswith('/'):
@@ -417,10 +419,10 @@ class DocdataClient(object):
             'command': 'show_payment_cluster',
             'payment_cluster_key': order_key,
             'merchant_name': appsettings.DOCDATA_MERCHANT_NAME,
-            'return_url_success': return_url,
-            'return_url_pending': return_url,
-            'return_url_canceled': return_url,
-            'return_url_error': return_url,
+            'return_url_success': url_format.format(return_url, callback='SUCCESS', order_id=order_key),
+            'return_url_pending': url_format.format(return_url, callback='PENDING', order_id=order_key),
+            'return_url_canceled': url_format.format(return_url, callback='CANCELLED', order_id=order_key),
+            'return_url_error': url_format.format(return_url, callback='ERROR', order_id=order_key),
             'client_language': (client_language or get_language()).upper()
         }
         args.update(extra_url_args)

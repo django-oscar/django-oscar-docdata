@@ -9,6 +9,6 @@ payment_updated = Signal(providing_args=['order', 'payment'])
 
 payment_added = Signal(providing_args=['order', 'payment'])
 
-return_view_called = Signal(providing_args=['request', 'order'])
+return_view_called = Signal(providing_args=['request', 'order', 'callback'])
 
 status_changed_view_called = Signal(providing_args=['request', 'order'])

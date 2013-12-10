@@ -47,13 +47,14 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
     def get(self, request, *args, **kwargs):
         # Directly query the latest state from Docdata
         order_key = self.get_order_key()
-        logger.info("Returned from Docdata for {0}".format(order_key))
+        callback = request.GET.get('callback') or ''
+        logger.info("Returned from Docdata for {0}, callback: {1}".format(order_key, callback))
 
         self.order = self.get_order(order_key)   # this is the docdata id.
         self.update_order(self.order)
 
         # Allow other code to perform actions, e.g. send a confirmation email.
-        responses = return_view_called.send(sender=self.__class__, request=request, order=self.order)
+        responses = return_view_called.send(sender=self.__class__, request=request, order=self.order, callback=callback)
 
         # Redirect to thank you page
         with translation.override(self.order.language):                # Allow i18n_patterns() to work properly
