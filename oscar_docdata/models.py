@@ -69,6 +69,17 @@ class DocdataOrder(models.Model):
         except IndexError:
             return None
 
+    def cancel(self):
+        """
+        Cancel an order in Docdata.
+        """
+        from .facade import Facade
+        facade = Facade()
+        facade.cancel_order(self)
+        facade.update_order(self)
+
+    cancel.alters_data = True
+
 
 class DocdataPayment(PolymorphicModel):
     """

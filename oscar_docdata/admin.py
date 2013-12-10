@@ -163,8 +163,7 @@ class DocdataOrderAdmin(admin.ModelAdmin):
         """
         Cancel an existing order in the system.
         """
-        facade = Facade()
-        facade.cancel_order(obj)
+        obj.cancel()
 
 
 admin.site.register(DocdataOrder, DocdataOrderAdmin)
