@@ -42,7 +42,10 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
     """
     The view to redirect to after a successful order creation.
     """
-    redirect_url = appsettings.DOCDATA_REDIRECT_URL
+    success_url = appsettings.DOCDATA_SUCCESS_URL
+    pending_url = appsettings.DOCDATA_PENDING_URL
+    cancelled_url = appsettings.DOCDATA_CANCELLED_URL
+    error_url = appsettings.DOCDATA_ERROR_URL
 
     def get(self, request, *args, **kwargs):
         # Directly query the latest state from Docdata
@@ -58,7 +61,7 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
 
         # Redirect to thank you page
         with translation.override(self.order.language):                # Allow i18n_patterns() to work properly
-            return HttpResponseRedirect(str(self.get_redirect_url()))  # force evaluation of reverse_lazy()
+            return HttpResponseRedirect(str(self.get_redirect_url(callback)))  # force evaluation of reverse_lazy()
 
     def get_order(self, order_key):
         """
@@ -71,8 +74,20 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
             logger.error("Order key '{0}' not found to update payment status.".format(order_key))
             raise Http404(u"Order key '{0}' not found!".format(order_key))
 
-    def get_redirect_url(self):
-        return self.redirect_url
+    def get_redirect_url(self, callback):
+        """
+        Return the URL to redirect to.
+        The callback value can be 'SUCCESS', 'PENDING', 'CANCELLED', 'ERROR'
+        """
+        # The callback parameter is added by get_payment_menu_url()
+        if callback == 'SUCCESS':
+            return self.success_url
+        elif callback in ('PENDING', ''):  # treat missing value as pending
+            return self.pending_url
+        elif callback == 'CANCELLED':
+            return self.cancelled_url
+        else:
+            return self.error_url
 
 
 class StatusChangedNotificationView(UpdateOrderMixin, View):
