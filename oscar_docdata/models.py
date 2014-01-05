@@ -113,7 +113,7 @@ class DocdataPayment(PolymorphicModel):
         return self.payment_id
 
     class Meta:
-        ordering = ('-created', '-updated')
+        ordering = ('payment_id',)
         verbose_name = _("Payment")
         verbose_name_plural = _("Payments")
 

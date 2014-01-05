@@ -210,7 +210,7 @@ class Interface(object):
 
         for payment_report in report.payment:
             # payment_report is a ns0:payment object, which contains:
-            # - id
+            # - id            (paymentId, a positiveInteger)
             # - paymentMethod (string50)
             # - authorization  (authorization)
             #   - status      str
@@ -232,7 +232,7 @@ class Interface(object):
                 # Create new line
                 ddpayment = payment_class(
                     docdata_order=order,
-                    payment_id=str(payment_report.id),
+                    payment_id=long(payment_report.id),
                     payment_method=str(payment_report.paymentMethod),
                 )
                 added = True
@@ -296,8 +296,11 @@ class Interface(object):
                 else:
                     payment_updated.send(sender=DocdataPayment, order=order, payment=ddpayment)
 
-            latest_ddpayment = ddpayment
-            latest_payment = payment_report
+            # Webservice doesn't return payments in the correct order (or reversed).
+            # So far, the payments can only be sorted by ID.
+            if latest_payment is None or latest_payment.id < payment_report.id:
+                latest_ddpayment = ddpayment
+                latest_payment = payment_report
 
         return (latest_ddpayment, latest_payment)
 
