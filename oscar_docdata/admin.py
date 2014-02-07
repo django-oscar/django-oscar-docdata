@@ -37,6 +37,7 @@ class DocdataOrderAdmin(admin.ModelAdmin):
     """
     list_display = ('merchant_order_id', 'order_key', 'total_gross_amount', 'status', 'created')
     list_filter = ('status',)
+    search_fields = ('merchant_order_id', 'order_key',)
     inlines = (DocdataPaymentInline,)
     date_hierarchy = 'created'
 
