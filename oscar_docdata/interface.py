@@ -325,7 +325,7 @@ class Interface(object):
         #
         if status == DocdataClient.STATUS_AUTHORIZED:
 
-            if totals.totalRegistered == totals.totalCaptured:
+            if totals.totalCaptured >= totals.totalRegistered:
                 payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
 
                 if payment_sum >= totals.totalRegistered:
