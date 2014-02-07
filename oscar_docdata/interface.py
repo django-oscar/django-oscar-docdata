@@ -324,7 +324,6 @@ class Interface(object):
         # captured.
         #
         if status == DocdataClient.STATUS_AUTHORIZED:
-            registered_captured_logged = False
 
             if totals.totalRegistered == totals.totalCaptured:
                 payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
@@ -333,12 +332,12 @@ class Interface(object):
                     # With all capture changes etc.. it's still what was registered.
                     # Full amount is paid.
                     new_status = DocdataOrder.STATUS_PAID
+                    logger.info("Total {0} Registered: {1} >= Total Captured: {2}; new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured))
+
                 elif payment_sum == 0:
                     logger.info("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
                         order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
                     ))
-
-                    registered_captured_logged = True
 
                     # See what happened with the last payment addition
                     authorization = latest_payment_report.authorization
@@ -366,12 +365,8 @@ class Interface(object):
                     logger.error("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
                         order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
                     ))
-                    registered_captured_logged = True
                     logger.error("Captured {0}, chargeback and refunded sum is negative. Please investigate.".format(order.order_key))
                     new_status = DocdataOrder.STATUS_UNKNOWN
-
-            if not registered_captured_logged:
-                logger.info("Total {0} Registered: {1} Total Captured: {2}".format(order.order_key, totals.totalRegistered, totals.totalCaptured))
 
 
         # Detect a nasty error condition that needs to be manually fixed.
