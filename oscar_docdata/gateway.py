@@ -503,12 +503,12 @@ class Name(object):
         # Assigning values is perhaps very Java-esque, but it's very obvious too
         # what's happening here, while keeping Python-like constructor argument styles.
         node = factory.create('ns0:name')
-        node.first = self.first.decode('utf8')
-        node.middle = self.middle.decode('utf8') if self.middle else None
-        node.last = self.last.decode('utf8')
-        node.initials = self.initials.decode('utf8') if self.initials else None
-        node.prefix = self.prefix.decode('utf8') if self.prefix else None
-        node.suffix = self.suffix.decode('utf8') if self.suffix else None
+        node.first = unicode(self.first)
+        node.middle = unicode(self.middle) if self.middle else None
+        node.last = unicode(self.last)
+        node.initials = unicode(self.initials) if self.initials else None
+        node.prefix = unicode(self.prefix) if self.prefix else None
+        node.suffix = unicode(self.suffix) if self.suffix else None
         return node
 
 
@@ -594,14 +594,14 @@ class Address(object):
 
     def to_xml(self, factory):
         country = factory.create('ns0:country')
-        country._code = self.country_code
+        country._code = unicode(self.country_code)
 
         node = factory.create('ns0:address')
-        node.street = self.street.decode('utf8')
+        node.street = unicode(self.street)
         node.houseNumber = self.house_number  #string35
-        node.houseNumberAddition = self.house_number_addition.decode('utf8') if self.house_number_addition else None
-        node.postalCode = self.postal_code.replace(' ', '')  # Spaces aren't allowed in the Docdata postal code (type=NMTOKEN)
-        node.city = self.city.decode('utf8')
+        node.houseNumberAddition = unicode(self.house_number_addition) if self.house_number_addition else None
+        node.postalCode = unicode(self.postal_code.replace(' ', ''))  # Spaces aren't allowed in the Docdata postal code (type=NMTOKEN)
+        node.city = unicode(self.city)
         node.country = country
         return node
 
@@ -651,7 +651,7 @@ class AmexPayment(Payment):
         node.creditCardNumber = self.credit_card_number
         node.expiryDate = self.expiry_date
         node.cid = self.cid
-        node.cardHolder = self.card_holder.decode('utf8')
+        node.cardHolder = unicode(self.card_holder)
         node.emailAddress = self.email_address
         return node
 
@@ -667,7 +667,7 @@ class MasterCardPayment(Payment):
         self.credit_card_number = credit_card_number
         self.expiry_date = expiry_date
         self.cvc2 = cvc2
-        self.card_holder = card_holder.decode('utf8')
+        self.card_holder = unicode(card_holder)
         self.email_address = email_address
 
     def to_xml(self, factory):
@@ -675,7 +675,7 @@ class MasterCardPayment(Payment):
         node.creditCardNumber = self.credit_card_number
         node.expiryDate = self.expiry_date
         node.cvc2 = self.cvc2
-        node.cardHolder = self.card_holder.decode('utf8')
+        node.cardHolder = unicode(self.card_holder)
         node.emailAddress = self.email_address
         return node
 
@@ -699,8 +699,8 @@ class DirectDebitPayment(Payment):
         country._code = self.holder_country_code
 
         node = factory.create('ns0:directDebitPaymentInput')
-        node.holderName = self.holder_name.decode('utf8')
-        node.holderCity = self.holder_city.decode('utf8')
+        node.holderName = unicode(self.holder_name)
+        node.holderCity = unicode(self.holder_city)
         node.holderCountry = country
         node.bic = self.bic
         node.iban = self.iban
