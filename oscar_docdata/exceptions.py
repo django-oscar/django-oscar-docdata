@@ -1,4 +1,9 @@
 
+class OrderKeyMissing(ValueError):
+    """
+    Missing an order key!
+    """
+
 class DocdataException(Exception):
     """
     Base class for all exceptions from Docdata

@@ -12,7 +12,7 @@ from django.utils.translation import get_language
 from urllib import urlencode
 from urllib2 import URLError
 from oscar_docdata import appsettings
-from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError
+from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
 
 logger = logging.getLogger(__name__)
 
@@ -282,7 +282,7 @@ class DocdataClient(object):
         :type amount: Amount
         """
         if not order_key:
-            raise ValueError("Missing order_key!")
+            raise OrderKeyMissing("Missing order_key!")
 
         # We only need to set amount because of bug in suds library. Otherwise it defaults to order amount.
 
@@ -309,6 +309,9 @@ class DocdataClient(object):
         The cancel command is used for canceling a previously created payment,
         and can only be used for payments with status NEW, STARTED and AUTHORIZED.
         """
+        if not order_key:
+            raise OrderKeyMissing("Missing order_key!")
+
         reply = self.client.service.cancel(self.merchant, order_key)
 
         if hasattr(reply, 'cancelSuccess'):
@@ -356,6 +359,8 @@ class DocdataClient(object):
         #     </report>
         #   </statusSuccess>
         # </statusResponse>
+        if not order_key:
+            raise OrderKeyMissing("Missing order_key!")
 
         reply = self.client.service.status(self.merchant, order_key)
 
@@ -374,6 +379,9 @@ class DocdataClient(object):
         """
         Request the status with extended information.
         """
+        if not order_key:
+            raise OrderKeyMissing("Missing order_key!")
+
         reply = self.client.service.statusExtended(self.merchant, order_key)
 
         if hasattr(reply, 'statusSuccess'):

@@ -5,7 +5,7 @@ from django.db.models import get_model
 from django.utils.translation import get_language
 from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
-from oscar_docdata.exceptions import DocdataCreateError
+from oscar_docdata.exceptions import DocdataCreateError, OrderKeyMissing
 from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
 from oscar_docdata.interface import Interface
 
@@ -37,10 +37,6 @@ class Facade(Interface):
             order_key = super(Facade, self).create_payment(order_number, total, user, language=language, description=description, profile=profile, **kwargs)
         except DocdataCreateError as e:
             raise PaymentError(e.value, e)
-        except ValueError as e:
-            raise PaymentError(str(e))
-
-        # TODO: create Oscar PaymentEvent?
 
         return order_key
 
