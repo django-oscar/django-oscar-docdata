@@ -6,6 +6,7 @@ The Oscar specific code is in the facade.
 """
 import logging
 from decimal import Decimal as D
+from django.db import IntegrityError, transaction
 from django.utils.translation import get_language
 from oscar_docdata import appsettings
 from oscar_docdata.gateway import DocdataClient
@@ -287,7 +288,21 @@ class Interface(object):
                 updated = True
 
             if added or updated:
-                ddpayment.save()
+                # Saving might happen concurrently, as the user returns to the OrderReturnView
+                # and Docdata calls the StatusChangedNotificationView at the same time.
+                sid = transaction.savepoint()  # for PostgreSQL
+                try:
+                    ddpayment.save()
+                    transaction.savepoint_commit(sid)
+                except IntegrityError:
+                    transaction.savepoint_rollback(sid)
+                    logger.warn("Experienced concurrency issues with update-status, payment id {0}: {1}".format(payment_report.id))
+
+                    # Overwrite existing object instead.
+                    #not needed, no impact on save: ddpayment._state.adding = False
+                    ddpayment.id = str(payment_report.id)
+                    ddpayment.save()
+                    added = False
 
                 # Fire events so payment transactions can be created in Oscar.
                 # This can be used to call source.transactions.create(..) for example.

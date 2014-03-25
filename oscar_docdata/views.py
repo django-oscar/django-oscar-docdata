@@ -53,6 +53,8 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
         callback = request.GET.get('callback') or ''
         logger.info("Returned from Docdata for {0}, callback: {1}".format(order_key, callback))
 
+        # Need to make sure the latest status is present,
+        # won't wait for Docdata to call our update API.
         self.order = self.get_order(order_key)   # this is the docdata id.
         self.update_order(self.order)
 
