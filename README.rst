@@ -31,9 +31,19 @@ Configure the application:
 
 Add to ``urls.py``::
 
+    from oscar_docdata.dashboard.app import application as docdata_app
+
     urlpatterns += patterns('',
         url(r'^api/docdata/', include('docdata.urls')),
+        url(r'^dashboard/docdata/', include(docdata_app.urls)),
     )
+
+Add to ``settings.py``::
+
+    OSCAR_DASHBOARD_NAVIGATION[2]['children'].insert(1, {
+        'label': _('Docdata Orders'),
+        'url_name': 'docdata-order-list',
+    })
 
 As recommendation, temporary log all events from this package as well::
 

@@ -1,0 +1,150 @@
+{% extends 'dashboard/layout.html' %}
+{% load url from future %}
+{% load currency_filters %}
+{% load i18n %}
+
+{% block body_class %}docdata-order-detail default{% endblock %}
+
+{% block title %}
+    {{ object.order_key }} | {{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li>
+            <a href="{% url 'dashboard:index' %}">{% trans "Dashboard" %}</a>
+            <span class="divider">/</span>
+        </li>
+        <li>
+            <a href="{% url 'docdata-order-list' %}">{% trans "Docdata Orders" %}</a>
+            <span class="divider">/</span>
+        </li>
+        <li class="active"><a href=".">{{ object.name }}</a></li>
+    </ul>
+{% endblock %}
+
+{% block header %}
+    <div class="page-header">
+        <h1>{{ object.merchant_order_id }}</h1>
+    </div>
+{% endblock header %}
+
+{% block dashboard_content %}
+    <div class="row-fluid">
+        <div class="">
+            <div class="table-header">
+                <h2>{% trans "Docdata order details" %}</h2>
+            </div>
+            <table class="table table-bordered">
+                <tr>
+                    <th width="30%">{% trans "Order ID" %}</th>
+                    <td><a href="{% url 'dashboard:order-detail' number=object.merchant_order_id %}">{{ object.merchant_order_id }}</a></td>
+                </tr>
+                <tr>
+                    <th>{% trans "Payment cluster ID" %}</th>
+                    <td>{{ object.order_key }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total gross amount" %}</th>
+                    <td>{{ object.total_gross_amount|currency:object.currency }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Currency" %}</th>
+                    <td>{{ object.currency }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Status" %}</th>
+                    <td>{{ object.status }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Language" %}</th>
+                    <td>{{ object.language }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Country" %}</th>
+                    <td>{{ object.country }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Actions" %}</th>
+                    <td>
+                        <a class="btn btn-primary" href="{% url 'docdata-order-update-status' pk=object.pk %}">{% trans 'Update status' %}</a>
+                        &nbsp;
+                        <a class="btn btn-danger" href="{% url 'docdata-order-cancel' pk=object.pk %}">{% trans 'Cancel order' %}</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="">
+            <div class="table-header">
+                <h2>{% trans "Amounts" %}</h2>
+            </div>
+            <table class="table table-bordered">
+                <tr>
+                    <th width="30%">{% trans "Total registered" %}</th>
+                    <td>{{ object.total_registered }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total shopper pending" %}</th>
+                    <td>{{ object.total_shopper_pending }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total acquirer pending" %}</th>
+                    <td>{{ object.total_acquirer_pending }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total acquirer approved" %}</th>
+                    <td>{{ object.total_acquirer_approved }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total captured" %}</th>
+                    <td>{{ object.total_captured }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total refunded" %}</th>
+                    <td>{{ object.total_refunded }}</td>
+                </tr>
+                <tr>
+                    <th>{% trans "Total changed back" %}</th>
+                    <td>{{ object.total_charged_back }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <table class="table table-striped table-bordered table-hover">
+            <caption>
+                <h3><i class="icon-money icon-large"></i>{% trans "Payments" %}</h3>
+            </caption>
+            {% if object_payments %}
+                <thead>
+                    <tr>
+                        <th>{% trans "Payment id" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Amount Debited" %}</th>
+                        <th>{% trans "Amount Refunded" %}</th>
+                        <th>{% trans "Amount Changed back" %}</th>
+                        <th>{% trans "Payment method" %}</th>
+                        <th>{% trans "Confidence level" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for payment in object_payments %}
+                    <tr>
+                        <td>{{ payment.payment_id }}</td>
+                        <td>{{ payment.status }}</td>
+                        <td>{{ payment.amount_debited }}</td>
+                        <td>{{ payment.amount_refunded }}</td>
+                        <td>{{ payment.amount_chargeback }}</td>
+                        <td>{{ payment.payment_method }}</td>
+                        <td>{{ payment.confidence_level }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% else %}
+                <tbody>
+                    <tr><td>{% trans "There are no docdata orders to display." %}</td></tr>
+                </tbody>
+            {% endif %}
+        </table>
+    </div>
+{% endblock dashboard_content %}
