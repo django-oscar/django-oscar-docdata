@@ -5,6 +5,7 @@ Gateway module - this module is ignorant of Oscar and could be used in a non-Osc
 All Oscar-related functionality should be in the facade.
 """
 import logging
+from django.core.exceptions import ImproperlyConfigured
 import suds
 import suds.plugin
 from django.core.urlresolvers import reverse
@@ -171,6 +172,11 @@ class DocdataClient(object):
 
         self.testing_mode = testing_mode
         self.client = get_suds_client(testing_mode)
+
+        if not appsettings.DOCDATA_MERCHANT_NAME:
+            raise ImproperlyConfigured("Missing DOCDATA_MERCHANT_NAME setting!")
+        if not appsettings.DOCDATA_MERCHANT_PASSWORD:
+            raise ImproperlyConfigured("Missing DOCDATA_MERCHANT_PASSWORD setting!")
 
         # Create the merchant node which is passed to every request.
         # The _ notation is used to assign attributes to the XML node, instead of child elements.
