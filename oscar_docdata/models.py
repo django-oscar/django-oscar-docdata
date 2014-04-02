@@ -76,7 +76,6 @@ class DocdataOrder(models.Model):
         from .facade import Facade
         facade = Facade()
         facade.cancel_order(self)
-        facade.update_order(self)
 
     cancel.alters_data = True
 

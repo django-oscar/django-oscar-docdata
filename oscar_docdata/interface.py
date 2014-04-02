@@ -138,6 +138,7 @@ class Interface(object):
         client.cancel(order.order_key)  # Can bail out with an exception (already logged)
 
         # Let docdata be the master.
+        # Don't wait for server to send event back, get most recent state now.
         self.update_order(order)
 
 
