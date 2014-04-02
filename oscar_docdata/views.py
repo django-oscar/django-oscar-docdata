@@ -61,9 +61,12 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
         # Allow other code to perform actions, e.g. send a confirmation email.
         responses = return_view_called.send(sender=self.__class__, request=request, order=self.order, callback=callback)
 
-        # Redirect to thank you page
-        with translation.override(self.order.language):                # Allow i18n_patterns() to work properly
-            return HttpResponseRedirect(str(self.get_redirect_url(callback)))  # force evaluation of reverse_lazy()
+        # Redirect to thank you page, or the cancelled page,
+        # depending on the callback parameter
+        with translation.override(self.order.language):   # Allow i18n_patterns() to work properly
+            url = str(self.get_redirect_url(callback))    # force evaluation of reverse_lazy()
+
+        return HttpResponseRedirect(url)
 
     def get_order(self, order_key):
         """
