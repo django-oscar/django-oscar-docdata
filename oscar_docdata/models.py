@@ -15,7 +15,7 @@ class DocdataOrder(models.Model):
     STATUS_PENDING = 'pending'            # Waiting for user to complete payment (e.g. credit cards)
     STATUS_PAID = 'paid'                  # End of story, paid!
     STATUS_CANCELLED = 'cancelled'        # End of story, cancelled
-    STATUS_CHARGED_BACK = 'changed_back'  # End of story, consumer asked for charge back
+    STATUS_CHARGED_BACK = 'charged_back'  # End of story, consumer asked for charge back
     STATUS_REFUNDED = 'refunded'          # End of story, refunded, merchant refunded
     STATUS_UNKNOWN = 'unknown'            # Help!
 
