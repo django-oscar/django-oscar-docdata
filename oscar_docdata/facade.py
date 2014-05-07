@@ -69,7 +69,7 @@ class Facade(Interface):
                 id=user.id,
                 name=shopper_name,
                 email=user.email,
-                language=language or get_language(),
+                language=_to_iso639_part1(language or get_language()),
                 gender='U'
             ),
             bill_to=Destination(
@@ -113,3 +113,8 @@ class Facade(Interface):
         """
         source_type, _ = SourceType.objects.get_or_create(code='docdata', defaults={'name': "Docdata Payments"})
         return source_type
+
+
+def _to_iso639_part1(language_code):
+    # Convert codes like "en-us" to "en"
+    return language_code.split('-', 1)[0]
