@@ -137,9 +137,11 @@ class Interface(object):
         client = DocdataClient()
         client.cancel(order.order_key)  # Can bail out with an exception (already logged)
 
-        # Let docdata be the master.
         # Don't wait for server to send event back, get most recent state now.
-        self.update_order(order)
+        # Also make sure the order will be marked as cancelled.
+        client = DocdataClient()
+        statusreply = client.status(order.order_key)  # Can bail out with an exception (already logged)
+        self._store_report(order, statusreply.report, indented_status=DocdataOrder.STATUS_CANCELLED)
 
 
     def update_order(self, order):
@@ -154,7 +156,7 @@ class Interface(object):
         self._store_report(order, statusreply.report)
 
 
-    def _store_report(self, order, report):
+    def _store_report(self, order, report, indented_status=None):
         """
         Store the retrieved status report in the order object.
         """
@@ -163,7 +165,11 @@ class Interface(object):
             latest_ddpayment, latest_payment = self._store_report_lines(order, report)
             new_status = self._check_status(order, report, latest_ddpayment, latest_payment)
         else:
-            new_status = DocdataOrder.STATUS_NEW
+            # There are no payments. It's really annoying to see that the Docdata status API
+            # doesn't actually return a global "payment cluster" status code.
+            # There are only status codes for the payment (which corresponds with a payment attempts by the user).
+            # Make our best efforts here.
+            new_status = indented_status or DocdataOrder.STATUS_NEW
 
         # Store status
         old_status = order.status
