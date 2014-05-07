@@ -27,8 +27,8 @@ class Interface(object):
         DocdataClient.STATUS_NEW: DocdataOrder.STATUS_NEW,
         DocdataClient.STATUS_STARTED: DocdataOrder.STATUS_NEW,
         DocdataClient.STATUS_REDIRECTED_FOR_AUTHENTICATION: DocdataOrder.STATUS_IN_PROGRESS,
-        DocdataClient.STATUS_AUTHORIZED: DocdataOrder.STATUS_PENDING,
         DocdataClient.STATUS_AUTHORIZATION_REQUESTED: DocdataOrder.STATUS_PENDING,
+        DocdataClient.STATUS_AUTHORIZED: DocdataOrder.STATUS_PENDING,
         DocdataClient.STATUS_PAID: DocdataOrder.STATUS_PENDING,  # Overwritten when it's totals are checked.
 
         DocdataClient.STATUS_CANCELLED: DocdataOrder.STATUS_CANCELLED,
@@ -162,8 +162,8 @@ class Interface(object):
         """
         if hasattr(report, 'payment'):
             # Store all report lines, make an analytics of the new status
-            latest_ddpayment, latest_payment = self._store_report_lines(order, report)
-            new_status = self._check_status(order, report, latest_ddpayment, latest_payment)
+            latest_payment = self._store_report_lines(order, report)
+            new_status = self._get_new_status(order, report, latest_payment)
         else:
             # There are no payments. It's really annoying to see that the Docdata status API
             # doesn't actually return a global "payment cluster" status code.
@@ -213,7 +213,6 @@ class Interface(object):
         Store the status report lines from the StatusReply.
         Each line represents a payment event.
         """
-        latest_ddpayment = None
         latest_payment = None
 
         for payment_report in report.payment:
@@ -321,22 +320,26 @@ class Interface(object):
             # Webservice doesn't return payments in the correct order (or reversed).
             # So far, the payments can only be sorted by ID.
             if latest_payment is None or latest_payment.id < payment_report.id:
-                latest_ddpayment = ddpayment
                 latest_payment = payment_report
 
-        return (latest_ddpayment, latest_payment)
+
+        # Use the latest payment to get a new status for the order.
+        return latest_payment
 
 
-    def _check_status(self, order, report, latest_ddpayment, latest_payment_report):
+    def _get_new_status(self, order, report, latest_payment_report):
         """
         Perform any checks related to the status change.
+        This returns the "status" value of the last payment line.
+        This line either indicates the payment is authorized, cancelled, refunded, etc..
         """
-        status = latest_ddpayment.status
+        status = str(latest_payment_report.authorization.status)
         totals = report.approximateTotals
-        new_status = self.status_mapping.get(str(latest_payment_report.authorization.status), DocdataOrder.STATUS_UNKNOWN)
 
         # Some status mapping overrides.
-        #
+        # Using status of last payment report line.
+        new_status = self.status_mapping.get(str(latest_payment_report.authorization.status), DocdataOrder.STATUS_UNKNOWN)
+
         # Integration Manual Order API 1.0 - Document version 1.0, 08-12-2012 - Page 33:
         #
         # Safe route: The safest route to check whether all payments were made is for the merchants
@@ -357,6 +360,8 @@ class Interface(object):
                     logger.info("Total {0} Registered: {1} >= Total Captured: {2}; new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured))
 
                 elif payment_sum == 0:
+                    # A payment was captured, but the totals are 0.
+                    # See if there is a charge back or refund.
                     logger.info("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
                         order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
                     ))
@@ -384,6 +389,7 @@ class Interface(object):
                     #payment.save()
 
                 else:
+                    # Show as error instead.
                     logger.error("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
                         order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
                     ))
