@@ -604,7 +604,7 @@ class Address(object):
 
         node = factory.create('ns0:address')
         node.street = unicode(self.street)
-        node.houseNumber = self.house_number  #string35
+        node.houseNumber = unicode(self.house_number)  #string35
         node.houseNumberAddition = unicode(self.house_number_addition) if self.house_number_addition else None
         node.postalCode = unicode(self.postal_code.replace(' ', ''))  # Spaces aren't allowed in the Docdata postal code (type=NMTOKEN)
         node.city = unicode(self.city)
