@@ -81,3 +81,23 @@ As recommendation, temporary log all events from this package as well::
             },
         },
     }
+
+Caveats
+=======
+
+While working with the docdata 1.0 API, we found the following limitations:
+
+* Address fields are oriented towards Dutch address standards.
+  Passing US-addressfields is hard, or requires hacking (e.g. faking the house number).
+* Passing invalid address fields could cause PayPal, VISA or MasterCard transactions to fail.
+* The individual payment objects have a status value, but the payment cluster does not.
+  This means that there is no global status value to read.
+  If an order has been cancelled before starting a payment, there is no way to tell from the API.
+  The only way this can be detected, is when the customer presses the "Back to shop" link, which calls the cancel callback url.
+  You may want to catch the ``return_view_called`` signal for this.
+* Determining that an order has been paid happens by comparing "received >= expected".
+  This could break with currency conversions.
+  Again, because the payment cluster status is not exposed in the API.
+
+We hope this will be addressed by Docdata Payments in future versions of the API.
+
