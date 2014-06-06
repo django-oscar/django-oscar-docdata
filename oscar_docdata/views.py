@@ -1,9 +1,11 @@
 import logging
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, Http404
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, Http404, \
+    HttpResponseServerError
 from django.utils import translation
 from django.views.generic import View
 from oscar.core.loading import get_class
 from oscar_docdata import appsettings
+from oscar_docdata.exceptions import DocdataStatusError
 from oscar_docdata.facade import Facade
 from oscar_docdata.models import DocdataOrder
 from oscar_docdata.signals import return_view_called, status_changed_view_called
@@ -27,7 +29,7 @@ class UpdateOrderMixin(object):
         try:
             return self.request.GET[self.order_key_arg]
         except KeyError:
-            return HttpResponseBadRequest(u"Missing key parameter", content_type='text/plain; charset=utf-8')
+            raise KeyError("Missing {0} parameter".format(self.order_key_arg))
 
     def get_order(self, order_key):
         raise NotImplementedError()
@@ -49,7 +51,11 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
 
     def get(self, request, *args, **kwargs):
         # Directly query the latest state from Docdata
-        order_key = self.get_order_key()
+        try:
+            order_key = self.get_order_key()
+        except KeyError as e:
+            return HttpResponseBadRequest(e.message, content_type='text/plain; charset=utf-8')
+
         callback = request.GET.get('callback') or ''
         logger.info("Returned from Docdata for {0}, callback: {1}".format(order_key, callback))
 
@@ -108,7 +114,11 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
     The use of this service is optional, but recommended.
     """
     def get(self, request, *args, **kwargs):
-        order_key = self.get_order_key()
+        try:
+            order_key = self.get_order_key()
+        except KeyError as e:
+            return HttpResponseBadRequest(e.message, content_type='text/plain; charset=utf-8')
+
         logger.info("Got Docdata status changed notification for {0}".format(order_key))
 
         try:
@@ -116,7 +126,20 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
         except Http404 as e:
             return HttpResponseNotFound(str(e), content_type='text/plain; charset=utf-8')
 
-        self.update_order(self.order)
+        try:
+            self.update_order(self.order)
+        except DocdataStatusError as e:
+            logger.exception("The order status could not be retrieved from Docdata by the notification-url")
+            return HttpResponseServerError(
+                "Failed to fetch status from Docdata API.\n"
+                "\n\n"
+                "Docdata API response:\n"
+                "---------------------\n"
+                "\n"
+                "code:    {0}\n"
+                "message: {1}".format(e.code, e.message),
+                content_type='text/plain; charset=utf-8'
+            )
 
         responses = status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
 
