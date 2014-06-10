@@ -1,0 +1,23 @@
+{% extends "checkout/checkout.html" %}
+{% load i18n %}
+
+{% block checkout_title %}{{ form.payment_method.label }}{% endblock %}
+
+
+{% block content %}
+    {% if error %}
+        <div class="alert alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="" method="post">
+        {% csrf_token %}
+
+        {% if form.payment_method.errors %}{{ form.payment_method.errors }}{% endif %}
+        {{ form.payment_method }}
+
+        <p><button type="submit" class="btn btn-large btn-primary">{% trans "Continue to confirmation" %}</button>
+
+    </form>
+{% endblock %}

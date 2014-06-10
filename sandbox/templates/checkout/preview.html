@@ -1,0 +1,21 @@
+{% extends 'oscar/checkout/preview.html' %}
+{% load currency_filters %}
+{% load i18n %}
+
+{% block payment_method %}
+    <div class="span6">
+    <h3>{% trans "Payment" %}</h3>
+    <div class="well well-success" data-behaviours="match-height">
+
+        <p>Using {{ payment_method.title }}</p>
+
+        <div class="alert-actions">
+            <a href="{% url 'checkout:payment-method' %}" class="btn">{% trans "Change payment method" %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block hiddenforms %}
+    {{ bankcard_form.as_p }}
+{% endblock %}

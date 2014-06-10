@@ -1,0 +1,7 @@
+{% extends 'oscar/checkout/payment_details.html' %}
+{% load i18n %}
+
+{% block payment_details_content %}
+    <p>In case you want to ask more payment details, implement this page here.</p>
+		<a id="view_preview" href="{% url 'checkout:preview' %}" class="btn btn-primary btn-large">{% trans "Continue" %}</a>
+{% endblock %}
