@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import get_language
 from urllib import urlencode
 from urllib2 import URLError
-from oscar_docdata import appsettings
+from oscar_docdata import appsettings, __version__ as oscar_docdata_version
 from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
 
 logger = logging.getLogger(__name__)
@@ -60,9 +60,9 @@ def get_suds_client(testing_mode=False):
     Create the suds client to connect to docdata.
     """
     if testing_mode:
-        url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_0?wsdl'
+        url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
     else:
-        url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_0?wsdl'
+        url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
 
     # TODO: CACHE THIS object, avoid having to request the WSDL at every instance.
     try:
@@ -80,7 +80,7 @@ class DocdataAPIVersionPlugin(suds.plugin.MessagePlugin):
     def marshalled(self, context):
         body = context.envelope.getChild('Body')
         request = body[0]
-        request.set('version', '1.0')
+        request.set('version', '1.2')
 
 
 #class DocdataBrokenWSDLPlugin(suds.plugin.DocumentPlugin):
@@ -192,8 +192,9 @@ class DocdataClient(object):
             bill_to,
             description,
             receiptText=None,
+            includeCosts=False,
             profile=appsettings.DOCDATA_PROFILE,
-            days_to_pay=appsettings.DOCDATA_DAYS_TO_PAY
+            days_to_pay=appsettings.DOCDATA_DAYS_TO_PAY,
         ):
         """
         Create the payment in docdata.
@@ -228,6 +229,8 @@ class DocdataClient(object):
         paymentPreferences = self.client.factory.create('ns0:paymentPreferences')
         paymentPreferences.profile = profile
         paymentPreferences.numberOfDaysToPay = days_to_pay
+        # paymentPreferences.exhortation.period1 ?
+        # paymentPreferences.exhortation.period2 ?
 
         # Menu preferences are empty. They are used for CSS file selection in the payment menu.
         menuPreferences = self.client.factory.create('ns0:menuPreferences')
@@ -252,7 +255,9 @@ class DocdataClient(object):
             total_gross_amount.to_xml(self.client.factory),
             bill_to.to_xml(self.client.factory),
             description or None,
-            receiptText or None
+            receiptText or None,
+            includeCosts or False,
+            integrationInfo=TechnicalIntegrationInfo.instance.to_xml(self.client.factory)
         )
 
         # Parse the reply
@@ -299,7 +304,12 @@ class DocdataClient(object):
         paymentRequestInput[payment.request_parameter] = payment.to_xml(self.client.factory)
 
         # Execute start payment request.
-        reply = self.client.service.start(self.merchant, order_key, paymentRequestInput)
+        reply = self.client.service.start(
+            self.merchant,
+            order_key,
+            paymentRequestInput,
+            integrationInfo=TechnicalIntegrationInfo.instance.to_xml(self.client.factory)
+        )
         if hasattr(reply, 'startSuccess'):
             return StartReply(reply.startSuccess.paymentId)
         elif hasattr(reply, 'startError'):
@@ -368,7 +378,11 @@ class DocdataClient(object):
         if not order_key:
             raise OrderKeyMissing("Missing order_key!")
 
-        reply = self.client.service.status(self.merchant, order_key)
+        reply = self.client.service.status(
+            self.merchant,
+            order_key,
+            iIntegrationInfo=TechnicalIntegrationInfo.instance.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+        )
 
         if hasattr(reply, 'statusSuccess'):
             return StatusReply(order_key, reply.statusSuccess.report)
@@ -388,7 +402,11 @@ class DocdataClient(object):
         if not order_key:
             raise OrderKeyMissing("Missing order_key!")
 
-        reply = self.client.service.statusExtended(self.merchant, order_key)
+        reply = self.client.service.statusExtended(
+            self.merchant,
+            order_key,
+            TechnicalIntegrationInfo.instance.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+        )
 
         if hasattr(reply, 'statusSuccess'):
             return StatusReply(order_key, reply.statusSuccess.report)
@@ -535,7 +553,7 @@ class Shopper(object):
     :type phone_number: str
     :type mobile_phone_number: str
     """
-    def __init__(self, id, name, email, language, gender="U", date_of_birth=None, phone_number=None, mobile_phone_number=None):
+    def __init__(self, id, name, email, language, gender="U", date_of_birth=None, phone_number=None, mobile_phone_number=None, ipAddress=None):
         """
         :type name: Name
         """
@@ -547,6 +565,7 @@ class Shopper(object):
         self.date_of_birth = date_of_birth
         self.phone_number = phone_number
         self.mobile_phone_number = mobile_phone_number  # +316..
+        self.ipAddress = ipAddress
 
     def to_xml(self, factory):
         language_node = factory.create('ns0:language')
@@ -561,6 +580,7 @@ class Shopper(object):
         node.dateOfBirth = self.date_of_birth.isoformat() if self.date_of_birth else None   # yyyy-mm-dd
         node.phoneNumber = self.phone_number                # string50, must start with "+"
         node.mobilePhoneNumber = self.mobile_phone_number   # string50, must start with "+"
+        node.ipAddress = self.ipAddress if self.ipAddress else None
         return node
 
 
@@ -592,15 +612,25 @@ class Address(object):
     :type house_number_addition: unicode
     :type postal_code: str
     :type city: unicode
+    :type state: unicode
     :type country_code: str
+    :type company: unicode
+    :type vatNumber: unicode
+    :type careOf: unicode
     """
-    def __init__(self, street, house_number, house_number_addition, postal_code, city, country_code):
+    def __init__(self, street, house_number, house_number_addition, postal_code, city, state, country_code, company=None, vatNumber=None, careOf=None):
         self.street = street
         self.house_number = house_number
         self.house_number_addition = house_number_addition
         self.postal_code = postal_code
         self.city = city
+        self.state = state
         self.country_code = country_code
+
+        self.company = company
+        self.vatNumber = vatNumber
+        self.careOf = careOf
+        #self.kvkNummer    # rant: seriously? a Netherlands-specific field in the API?
 
     def to_xml(self, factory):
         country = factory.create('ns0:country')
@@ -612,7 +642,13 @@ class Address(object):
         node.houseNumberAddition = unicode(self.house_number_addition) if self.house_number_addition else None
         node.postalCode = unicode(self.postal_code.replace(' ', ''))  # Spaces aren't allowed in the Docdata postal code (type=NMTOKEN)
         node.city = unicode(self.city)
+        node.state = unicode(self.state) if self.state else None
         node.country = country
+
+        # Optional company info
+        node.company = unicode(self.company) if self.company else None
+        node.vatNumber = unicode(self.vatNumber) if self.vatNumber else None
+        node.careOf = unicode(self.careOf) if self.careOf else None
         return node
 
 
@@ -629,6 +665,21 @@ class Amount(object):
         node.value = int(self.value * 100)   # No comma!
         node._currency = self.currency       # An attribute
         return node
+
+
+class TechnicalIntegrationInfo(object):
+    """
+    Pass integration information to the API for debugging assistance.
+    """
+    def to_xml(self, factory):
+        node = factory.create('ns0:technicalIntegrationInfo')
+        node.webshopPlugin = "django-oscar-docdata"
+        node.webshopPluginVersion = oscar_docdata_version
+        node.programmingLanguage = "Python"
+        return node
+
+
+TechnicalIntegrationInfo.instance = TechnicalIntegrationInfo()
 
 
 class Payment(object):

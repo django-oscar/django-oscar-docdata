@@ -80,6 +80,7 @@ class Facade(Interface):
                     house_number_addition=None,
                     postal_code=billingaddress.postcode,
                     city=billingaddress.city,
+                    state=billingaddress.state,
                     country_code=billingaddress.country_id  # The Country.iso_3166_1_a2 field.
                 )
             ),
