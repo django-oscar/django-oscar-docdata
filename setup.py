@@ -11,8 +11,9 @@ import sys
 if 'sdist' in sys.argv:
     try:
         os.chdir('oscar_docdata')
-        from django.core.management.commands.compilemessages import compile_messages
-        compile_messages(sys.stderr)
+        if os.path.exists('locale'):
+            from django.core.management.commands.compilemessages import compile_messages
+            compile_messages(sys.stderr)
     finally:
         os.chdir('..')
 
