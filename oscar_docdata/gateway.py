@@ -498,6 +498,10 @@ class Name(object):
     :type suffix: unicode
     """
     def __init__(self, first, last, middle=None, initials=None, prefix=None, suffix=None):
+        if not last:
+            raise ValueError("Name.last is required!")
+        if not first:
+            raise ValueError("Name.first is required!")
         self.first = first
         self.last = last
         self.prefix = prefix
