@@ -1,4 +1,5 @@
 import logging
+import re
 from django.db.models import get_model
 from django.dispatch import receiver
 from django.http import HttpRequest
@@ -16,6 +17,8 @@ PaymentEventType = get_model('order', 'PaymentEventType')
 PaymentEvent = get_model('order', 'PaymentEvent')
 PaymentEventQuantity = get_model('order', 'PaymentEventQuantity')
 
+RE_NUMBER = re.compile('^[0-9]+$')
+
 
 class CustomDocdataFacade(Facade):
     """
@@ -26,8 +29,11 @@ class CustomDocdataFacade(Facade):
         billingaddress = kwargs['billingaddress']
 
         # Pass house number
+        house_number = "1"  # This seriously needs to be a number for PayPal to work in Docdata!
+        if RE_NUMBER.match(billingaddress.line2):
+            house_number = billingaddress.line2
         api_args['bill_to'].address.street = billingaddress.line1
-        api_args['bill_to'].address.house_number = u'\xa0'  # Not found in Oscar address fields!
+        api_args['bill_to'].address.house_number = house_number
         return api_args
 
 
