@@ -184,6 +184,9 @@ class DocdataClient(object):
         self.merchant._name = appsettings.DOCDATA_MERCHANT_NAME
         self.merchant._password = appsettings.DOCDATA_MERCHANT_PASSWORD
 
+        # Create the integration info node which is passed to every request.
+        self.integration_info = TechnicalIntegrationInfo()
+
 
     def create(self,
             order_id,
@@ -257,7 +260,7 @@ class DocdataClient(object):
             description or None,
             receiptText or None,
             includeCosts or False,
-            integrationInfo=TechnicalIntegrationInfo.instance.to_xml(self.client.factory)
+            integrationInfo=self.integration_info.to_xml(self.client.factory)
         )
 
         # Parse the reply
@@ -308,7 +311,7 @@ class DocdataClient(object):
             self.merchant,
             order_key,
             paymentRequestInput,
-            integrationInfo=TechnicalIntegrationInfo.instance.to_xml(self.client.factory)
+            integrationInfo=self.integration_info.to_xml(self.client.factory)
         )
         if hasattr(reply, 'startSuccess'):
             return StartReply(reply.startSuccess.paymentId)
@@ -381,7 +384,7 @@ class DocdataClient(object):
         reply = self.client.service.status(
             self.merchant,
             order_key,
-            iIntegrationInfo=TechnicalIntegrationInfo.instance.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            iIntegrationInfo=self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
         )
 
         if hasattr(reply, 'statusSuccess'):
@@ -405,7 +408,7 @@ class DocdataClient(object):
         reply = self.client.service.statusExtended(
             self.merchant,
             order_key,
-            TechnicalIntegrationInfo.instance.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
         )
 
         if hasattr(reply, 'statusSuccess'):
@@ -677,9 +680,6 @@ class TechnicalIntegrationInfo(object):
         node.webshopPluginVersion = oscar_docdata_version
         node.programmingLanguage = "Python"
         return node
-
-
-TechnicalIntegrationInfo.instance = TechnicalIntegrationInfo()
 
 
 class Payment(object):
