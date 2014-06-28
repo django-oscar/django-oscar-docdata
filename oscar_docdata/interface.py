@@ -284,7 +284,7 @@ class Interface(object):
                     payment_report.id, ddpayment.status, auth_status
                 ))
 
-                if auth_status not in DocdataClient.DOCUMENTED_STATUS_VALUES:
+                if auth_status not in DocdataClient.DOCUMENTED_STATUS_VALUES and auth_status not in DocdataClient.SEEN_UNDOCUMENTED_STATUS_VALUES:
                     # Note: We continue to process the payment status change on this error.
                     logger.warn("Received unknown payment status from Docdata. payment={0}, status={1}".format(
                         payment_report.id, auth_status

@@ -154,6 +154,10 @@ class DocdataClient(object):
         STATUS_CLOSED_CANCELLED,
     )
 
+    SEEN_UNDOCUMENTED_STATUS_VALUES = (
+        STATUS_AUTHORIZATION_FAILED,
+    )
+
     # Payment methods for the start operation.
     PAYMENT_METHOD_AMEX = 'AMEX'
     PAYMENT_METHOD_MASTERCARD = 'MASTERCARD'
