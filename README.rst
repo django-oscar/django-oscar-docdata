@@ -85,7 +85,7 @@ As recommendation, temporary log all events from this package as well::
 Caveats
 =======
 
-While working with the docdata 1.0 API, we found the following limitations:
+While working with the Docdata 1.0 and 1.2 API, we found the following limitations:
 
 * Address fields are oriented towards Dutch address standards.
   Passing US-addressfields is hard, or requires hacking (e.g. faking the house number).
@@ -98,6 +98,7 @@ While working with the docdata 1.0 API, we found the following limitations:
 * Determining that an order has been paid happens by comparing "received >= expected".
   This could break with currency conversions.
   Again, because the payment cluster status is not exposed in the API.
+  As workaround, there is a ``DOCDATA_PAYMENT_SUCCESS_MARGIN`` setting to add a margin of 100 cents.
 
 We hope this will be addressed by Docdata Payments in future versions of the API.
 

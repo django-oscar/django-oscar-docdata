@@ -353,11 +353,22 @@ class Interface(object):
             if totals.totalCaptured >= totals.totalRegistered:
                 payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
 
-                if payment_sum >= totals.totalRegistered:
+                # Because currency conversions may cause payments to happen with a few cents less,
+                # this workaround makes sure those orders will still be marked as paid!
+                # If you don't like this, the alternative is using DOCDATA_PAYMENT_SUCCESS_MARGIN = {}
+                # and listening for the callback=SUCCESS value in the `return_view_called` signal.
+                margin = 0
+                if order.currency == totals._exchangedTo:  # Reads XML attribute.
+                    if any(p.authorization.amount._currency != order.currency for p in report.payment):
+                        margin = appsettings.DOCDATA_PAYMENT_SUCCESS_MARGIN.get(totals._exchangedTo, 0)
+                        if margin >= payment_sum:  # avoid making everything as paid!
+                            margin = 0
+
+                if payment_sum >= (totals.totalRegistered - margin):
                     # With all capture changes etc.. it's still what was registered.
                     # Full amount is paid.
                     new_status = DocdataOrder.STATUS_PAID
-                    logger.info("Total {0} Registered: {1} >= Total Captured: {2}; new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured))
+                    logger.info("Total {0} Registered: {1} >= Total Captured: {2} (margin: {3}); new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured, margin))
 
                 elif payment_sum == 0:
                     # A payment was captured, but the totals are 0.

@@ -36,6 +36,13 @@ DOCDATA_ORDER_STATUS_MAPPING = getattr(settings, 'DOCDATA_ORDER_STATUS_MAPPING',
 # Native oscar setting:
 OSCAR_ORDER_STATUS_CASCADE = getattr(settings, 'OSCAR_ORDER_STATUS_CASCADE', {})
 
+# Allow 100 cents difference between the total received payment
+# and actual registered money to handle currency rate conversions.
+DOCDATA_PAYMENT_SUCCESS_MARGIN = getattr(settings, 'DOCDATA_PAYMENT_SUCCESS_MARGIN', {
+    'USD': 100,
+    'EUR': 100,
+})
+
 # The list of known issuers (banks) for iDEAL
 DOCDATA_IDEAL_ISSUERS = getattr(settings, 'DOCDATA_IDEAL_ISSUERS', {
     '0081': 'Fortis',
