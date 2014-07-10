@@ -32,7 +32,10 @@ class CustomDocdataFacade(Facade):
         house_number = "1"  # This seriously needs to be a number for PayPal to work in Docdata!
         if RE_NUMBER.match(billingaddress.line2):
             house_number = billingaddress.line2
-        api_args['bill_to'].address.street = billingaddress.line1
+
+        # Make sure the address can be accepted by Docdata.
+        # Streets have a limit of 32 characters, so truncate it.
+        api_args['bill_to'].address.street = billingaddress.line1[:32]
         api_args['bill_to'].address.house_number = house_number
         return api_args
 

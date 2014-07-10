@@ -88,7 +88,11 @@ Caveats
 While working with the Docdata 1.0 and 1.2 API, we found the following limitations:
 
 * Address fields are oriented towards Dutch address standards.
-  Passing US-addressfields is hard, or requires hacking (e.g. faking the house number).
+  Passing international addressfields is hard, or requires hacking, for example:
+
+ * faking the house number (because the US address fields have no official field for that).
+ * Streets have a limit of 35 characters, so the "Address Line 1" should be truncated.
+
 * Passing invalid address fields could cause PayPal, VISA or MasterCard transactions to fail.
 * The individual payment objects have a status value, but the payment cluster does not.
   This means that there is no global status value to read.
