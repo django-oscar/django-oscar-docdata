@@ -54,7 +54,7 @@ setup(
     url='https://github.com/edoburu/django-oscar-docdata',
     download_url='https://github.com/edoburu/django-oscar-docdata/zipball/master',
 
-    packages=find_packages(exclude=('example*',)),
+    packages=find_packages(exclude=('example*','sandbox*')),
     include_package_data=True,
 
     #test_suite = 'runtests',
