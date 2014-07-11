@@ -11,7 +11,7 @@ class DocdataException(Exception):
     def __init__(self, code, value):
         super(DocdataException, self).__init__(value)
         self.code = code
-        self.value = value
+        self.value = unicode(value)
 
 
 class DocdataCreateError(DocdataException):
