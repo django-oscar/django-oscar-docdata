@@ -5,12 +5,21 @@ from django.db.models import get_model
 from django.utils.translation import get_language
 from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
-from oscar_docdata.exceptions import DocdataCreateError, OrderKeyMissing
+from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
 from oscar_docdata.interface import Interface
 
-Order = get_model('order', 'Order')
-SourceType = get_model('payment', 'SourceType')
+Order = None
+SourceType = None
+
+def _lazy_get_models():
+    # This avoids various import conflicts between apps that may
+    # import the Facade before any other models.
+    global Order
+    global SourceType
+    if Order is None:
+        Order = get_model('order', 'Order')
+        SourceType = get_model('payment', 'SourceType')
 
 
 class Facade(Interface):
@@ -98,6 +107,7 @@ class Facade(Interface):
 
         # Update the order in Oscar
         # Not using Order.set_status(), forcefully set it to the current situation.
+        _lazy_get_models()
         order = Order.objects.get(number=docdataorder.merchant_order_id)
         order.status = project_status
         if cascade:
@@ -112,6 +122,7 @@ class Facade(Interface):
         """
         Convenience method, return the canonical SourceType for Docdata payment events.
         """
+        _lazy_get_models()
         source_type, _ = SourceType.objects.get_or_create(code='docdata', defaults={'name': "Docdata Payments"})
         return source_type
 
