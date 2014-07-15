@@ -59,6 +59,11 @@ def _on_payment_added(order, payment, **kwargs):
                 txn_type=AbstractTransaction.AUTHORISE, amount=payment.amount_allocated,
                 reference=payment.payment_id, status=payment.status
             )
+        elif payment.amount_debited:
+            source.transactions.create(
+                txn_type=AbstractTransaction.DEBIT, amount=payment.amount_debited,
+                reference=payment.payment_id, status=payment.status
+            )
         elif payment.amount_refunded:
             source.transactions.create(
                 txn_type=AbstractTransaction.REFUND, amount=payment.amount_refunded,

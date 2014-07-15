@@ -261,15 +261,49 @@ class Interface(object):
             auth_status = str(authorization.status)
             ddpayment.confidence_level = authorization.confidenceLevel
 
+            # Example XML of payment_report:
+            #
+            # <payment>
+            #     <id>2481306128</id>
+            #     <paymentMethod>IDEAL</paymentMethod>
+            #     <authorization>
+            #         <status>AUTHORIZED</status>
+            #         <amount currency="EUR">7590</amount>
+            #         <confidenceLevel>ACQUIRER_APPROVED</confidenceLevel>
+            #         <capture>
+            #             <status>CAPTURED</status>
+            #             <amount currency="EUR">7590</amount>
+            #         </capture>
+            #     </authorization>
+            # </payment>
+
             if auth_status == 'AUTHORIZED':
                 # NOTE: currencies ignored here.
-                ddpayment.amount_debited = _to_decimal(authorization.amount)               # TODO: is this the right field??
+                # This only indicates the amount that's being dealt with.
+                # the actual debited value is added when the value is captured.
+                ddpayment.amount_allocated = _to_decimal(authorization.amount)
+
             if hasattr(authorization, 'capture'):
-                ddpayment.amount_allocated = _to_decimal(authorization.capture[0].amount)  # TODO: is this the right field??
+                # This means
+                capture = authorization.capture[0]
+                if capture.status == 'CAPTURED':
+                    ddpayment.amount_debited = _to_decimal(capture.amount)
+                else:
+                    logger.debug("Capture of {0} is marked as {1}, not adding to totals".format(ddpayment.payment_id, capture.status))
+
             if hasattr(authorization, 'refund'):
-                ddpayment.amount_refunded = _to_decimal(authorization.refund[0].amount)
+                refund = authorization.refund[0]
+                if refund.status == 'CAPTURED':
+                    ddpayment.amount_refunded = _to_decimal(refund.amount)
+                else:
+                    logger.debug("Refund of {0} is marked as {1}, not adding to totals".format(ddpayment.payment_id, capture.status))
+
             if hasattr(authorization, 'chargeback'):
-                ddpayment.amount_chargeback = _to_decimal(authorization.chargeback[0].amount)
+                chargeback = authorization.chargeback[0]
+                if chargeback.status == 'CAPTURED':
+                    ddpayment.amount_chargeback = _to_decimal(chargeback.amount)
+                else:
+                    logger.debug("Chargeback of {0} is marked as {1}, not adding to totals".format(ddpayment.payment_id, capture.status))
 
             # Track changes
             new_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
