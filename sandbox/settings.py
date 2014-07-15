@@ -288,6 +288,7 @@ OSCAR_ORDER_STATUS_PIPELINE = {
     'refunded': (),       # Merchant refunded
     'charged back': (),   # Customer asked for charge back
     'cancelled': (),
+    'expired': (),
     'shipping': ('delivered', 'refunded', 'charged back'),
     'delivered': ('refunded', 'charged back'),
 }
@@ -300,6 +301,7 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'paid': 'paid',
     'cancelled': 'cancelled',
     'charged back': 'charged back',
+    'expired': 'expired',
 }
 
 DOCDATA_ORDER_STATUS_MAPPING = {

@@ -17,6 +17,7 @@ class DocdataOrder(models.Model):
     STATUS_CANCELLED = 'cancelled'        # End of story, cancelled
     STATUS_CHARGED_BACK = 'charged_back'  # End of story, consumer asked for charge back
     STATUS_REFUNDED = 'refunded'          # End of story, refunded, merchant refunded
+    STATUS_EXPIRED = 'expired'           # No results of customer, order was closed.
     STATUS_UNKNOWN = 'unknown'            # Help!
 
     STATUS_CHOICES = (
@@ -27,6 +28,7 @@ class DocdataOrder(models.Model):
         (STATUS_CANCELLED, _("Cancelled")),
         (STATUS_CHARGED_BACK, _("Charged back")),
         (STATUS_REFUNDED, _("Refunded")),
+        (STATUS_EXPIRED, _("Expired")),
         (STATUS_UNKNOWN, _("Unknown")),
     )
 
