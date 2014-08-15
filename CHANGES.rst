@@ -1,13 +1,15 @@
 Changelog
 =========
 
-Version 1.2.1 (in development)
-------------------------------
+Version 1.2.2
+-------------
 
 * Add management command ``expire_docdata_orders``
+* Add management command ``docdata_report``
 * Be more strict with payment tags, check for ``capture=CAPTURED``
 * Explicitly set ``DocdataException.value`` to be a unicode string.
 * Fix possible circular import errors when using ``Facade`` in ``models.py``
+* Avoid warning for undocumented ``AUTHORIZATION_ERROR`` and ``CANCEL_FAILED`` status value.
 
 Version 1.2.1
 -------------
