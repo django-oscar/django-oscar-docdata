@@ -156,6 +156,8 @@ class DocdataClient(object):
 
     SEEN_UNDOCUMENTED_STATUS_VALUES = (
         STATUS_AUTHORIZATION_FAILED,
+        STATUS_CANCEL_FAILED,
+        STATUS_AUTHORIZATION_ERROR,
     )
 
     # Payment methods for the start operation.
