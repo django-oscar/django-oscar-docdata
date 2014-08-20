@@ -86,8 +86,8 @@ class Facade(Interface):
             ),
             bill_to=Destination(
                 bill_to_name,
-                address=Address(
-                    street=billingaddress.line1,            # NOTE: oscar has no street / housenumber fields!
+                address=Address(                            # NOTE: oscar has no street / housenumber fields!
+                    street=billingaddress.line1[:32],       # Docdata has a 32 char limit on street
                     house_number='N/A',                     # Field is required! Could consider passing nbsp or line2 ('\xc2\xa0')
                     house_number_addition=None,
                     postal_code=billingaddress.postcode,

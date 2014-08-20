@@ -5,6 +5,7 @@ Version 1.2.3
 -------------
 
 * Fix concurrency issues with Docdata calling both the return_url and notification_url at the same time.
+* Apply 32 char limit to street field in the default `get_create_payment_args()` implementation.
 
 Version 1.2.2
 -------------
