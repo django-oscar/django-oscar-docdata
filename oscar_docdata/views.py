@@ -5,6 +5,7 @@ from django.utils import translation
 from django.views.generic import View
 from oscar.core.loading import get_class
 from oscar_docdata import appsettings
+from oscar_docdata.compat import transaction_atomic
 from oscar_docdata.exceptions import DocdataStatusError
 from oscar_docdata.facade import Facade
 from oscar_docdata.models import DocdataOrder
@@ -22,17 +23,27 @@ class UpdateOrderMixin(object):
 
     # What docdata calls the order_id, we call the order_key
     # Docdata uses both the order_key and merchant_order_id in the requests, depending on the view.
-    order_key_arg = 'order_id'
+    order_query_arg = 'order_id'
+    order_slug_field = 'order_key'
     facade_class = Facade
 
-    def get_order_key(self):
+    def get_order_slug(self):
         try:
-            return self.request.GET[self.order_key_arg]
+            return self.request.GET[self.order_query_arg]
         except KeyError:
-            raise KeyError("Missing {0} parameter".format(self.order_key_arg))
+            raise KeyError("Missing {0} parameter".format(self.order_query_arg))
 
-    def get_order(self, order_key):
-        raise NotImplementedError()
+    def get_order(self, order_slug):
+        """
+        Update the status of an order, by fetching the latest state from docdata.
+        """
+        # Try to find the order.
+        # Block any other requests on the order until the status change is handled.
+        try:
+            return DocdataOrder.objects.select_for_update().get(**{self.order_slug_field: order_slug})
+        except DocdataOrder.DoesNotExist:
+            logger.error("Order {0}='{1}' not found to update payment status.".format(self.order_slug_field, order_slug))
+            raise Http404(u"Order {0}='{1}' not found!".format(self.order_slug_field, order_slug))
 
     def update_order(self, order):
         # Ask the facade to request the status, and update the order accordingly.
@@ -44,6 +55,7 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
     """
     The view to redirect to after a successful order creation.
     """
+    order_slug_field = 'order_key'
     success_url = appsettings.DOCDATA_SUCCESS_URL
     pending_url = appsettings.DOCDATA_PENDING_URL
     cancelled_url = appsettings.DOCDATA_CANCELLED_URL
@@ -52,7 +64,7 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
     def get(self, request, *args, **kwargs):
         # Directly query the latest state from Docdata
         try:
-            order_key = self.get_order_key()
+            order_key = self.get_order_slug()
         except KeyError as e:
             return HttpResponseBadRequest(e.message, content_type='text/plain; charset=utf-8')
 
@@ -61,8 +73,9 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
 
         # Need to make sure the latest status is present,
         # won't wait for Docdata to call our update API.
-        self.order = self.get_order(order_key)   # this is the docdata id.
-        self.update_order(self.order)
+        with transaction_atomic():
+            self.order = self.get_order(order_key)   # this is the docdata id.
+            self.update_order(self.order)
 
         # Allow other code to perform actions, e.g. send a confirmation email.
         responses = return_view_called.send(sender=self.__class__, request=request, order=self.order, callback=callback)
@@ -73,17 +86,6 @@ class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
             url = str(self.get_redirect_url(callback))    # force evaluation of reverse_lazy()
 
         return HttpResponseRedirect(url)
-
-    def get_order(self, order_key):
-        """
-        Update the status of an order, by fetching the latest state from docdata.
-        """
-        # Try to find the order.
-        try:
-            return DocdataOrder.objects.get(order_key=order_key)
-        except DocdataOrder.DoesNotExist:
-            logger.error("Order key '{0}' not found to update payment status.".format(order_key))
-            raise Http404(u"Order key '{0}' not found!".format(order_key))
 
     def get_redirect_url(self, callback):
         """
@@ -113,47 +115,38 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
 
     The use of this service is optional, but recommended.
     """
+    order_slug_field = 'merchant_order_id'
+
     def get(self, request, *args, **kwargs):
         try:
-            order_key = self.get_order_key()
+            order_key = self.get_order_slug()
         except KeyError as e:
             return HttpResponseBadRequest(e.message, content_type='text/plain; charset=utf-8')
 
         logger.info("Got Docdata status changed notification for {0}".format(order_key))
 
-        try:
-            self.order = self.get_order(order_key)  # Inconsistent, this call uses the merchant_order_id
-        except Http404 as e:
-            return HttpResponseNotFound(str(e), content_type='text/plain; charset=utf-8')
+        with transaction_atomic():
+            try:
+                self.order = self.get_order(order_key)  # Inconsistent, this call uses the merchant_order_id
+            except Http404 as e:
+                return HttpResponseNotFound(str(e), content_type='text/plain; charset=utf-8')
 
-        try:
-            self.update_order(self.order)
-        except DocdataStatusError as e:
-            logger.exception("The order status could not be retrieved from Docdata by the notification-url")
-            return HttpResponseServerError(
-                "Failed to fetch status from Docdata API.\n"
-                "\n\n"
-                "Docdata API response:\n"
-                "---------------------\n"
-                "\n"
-                "code:    {0}\n"
-                "message: {1}".format(e.code, e.message),
-                content_type='text/plain; charset=utf-8'
-            )
+            try:
+                self.update_order(self.order)
+            except DocdataStatusError as e:
+                logger.exception("The order status could not be retrieved from Docdata by the notification-url")
+                return HttpResponseServerError(
+                    "Failed to fetch status from Docdata API.\n"
+                    "\n\n"
+                    "Docdata API response:\n"
+                    "---------------------\n"
+                    "\n"
+                    "code:    {0}\n"
+                    "message: {1}".format(e.code, e.message),
+                    content_type='text/plain; charset=utf-8'
+                )
 
         responses = status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
 
         # Return 200 as required by DocData when the status changed notification was consumed.
         return HttpResponse(u"ok, order updated", content_type='text/plain; charset=utf-8')
-
-
-    def get_order(self, merchant_order_id):
-        """
-        Update the status of an order, by fetching the latest state from docdata.
-        """
-        # Try to find the order.
-        try:
-            return DocdataOrder.objects.get(merchant_order_id=merchant_order_id)
-        except DocdataOrder.DoesNotExist:
-            logger.error("Order id '{0}' not found to update payment status.".format(merchant_order_id))
-            raise Http404(u"Order id '{0}' not found!".format(merchant_order_id))

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 1.2.3
+-------------
+
+* Fix concurrency issues with Docdata calling both the return_url and notification_url at the same time.
+
 Version 1.2.2
 -------------
 

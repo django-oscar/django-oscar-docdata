@@ -2,12 +2,15 @@
 Bridging module between Oscar and the gateway module (which is Oscar agnostic)
 """
 from django.db.models import get_model
+import logging
 from django.utils.translation import get_language
 from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
 from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
 from oscar_docdata.interface import Interface
+
+logger = logging.getLogger(__name__)
 
 Order = None
 SourceType = None
@@ -102,13 +105,19 @@ class Facade(Interface):
         """
         The order status changed.
         """
+        _lazy_get_models()
         project_status = appsettings.DOCDATA_ORDER_STATUS_MAPPING.get(new_status, new_status)
         cascade = appsettings.OSCAR_ORDER_STATUS_CASCADE.get(project_status, None)
 
         # Update the order in Oscar
+        # Using select_for_update() to have a lock on the order first.
+        order = Order.objects.select_for_update().get(number=docdataorder.merchant_order_id)
+        if order.status == project_status:
+            # Parallel update by docdata (return URL and callback), avoid sending the signal twice to the user code.
+            logging.info("Order {0} status is already {1}, skipping signal.".format(order.number))
+            return
+
         # Not using Order.set_status(), forcefully set it to the current situation.
-        _lazy_get_models()
-        order = Order.objects.get(number=docdataorder.merchant_order_id)
         order.status = project_status
         if cascade:
             order.lines.all().update(status=cascade)

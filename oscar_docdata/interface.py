@@ -114,7 +114,7 @@ class Interface(object):
 
     def start_payment(self, order_key, payment, payment_method=None):
 
-        order = DocdataOrder.objects.get(order_key=order_key)
+        order = DocdataOrder.objects.select_for_update().get(order_key=order_key)
         amount = None
 
         # This can raise an exception.
@@ -468,6 +468,9 @@ class Interface(object):
         Notify that the order status changed.
         This function can be extended by inheriting the Facade class.
         """
+        if old_status == new_status:
+            return
+
         # Note that using a custom Facade class in your project doesn't help much,
         # as the Facade is also used by the default views.
         order_status_changed.send(sender=DocdataOrder, order=docdataorder, old_status=old_status, new_status=new_status)
