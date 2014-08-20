@@ -1,11 +1,11 @@
 """
 Bridging module between Oscar and the gateway module (which is Oscar agnostic)
 """
-from django.db.models import get_model
 import logging
 from django.utils.translation import get_language
 from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
+from oscar_docdata.compat import get_model
 from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
 from oscar_docdata.interface import Interface
