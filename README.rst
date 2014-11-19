@@ -82,6 +82,19 @@ As recommendation, temporary log all events from this package as well::
         },
     }
 
+
+Integration into your project
+-----------------------------
+
+Please view the `sandbox application`_ how to integrate the application.
+This includes the project-specific desisions such as:
+
+* How to create payment events.
+* Which fields to map to the "house number" field. (e.g. ``line2``, ``line3`` or a custom field).
+* Whether to cancel an order when the customer aborted the payment.
+* When to submit confirmation emails.
+
+
 Caveats
 =======
 
@@ -106,3 +119,5 @@ While working with the Docdata 1.0 and 1.2 API, we found the following limitatio
 
 We hope this will be addressed by Docdata Payments in future versions of the API.
 
+
+.. _`sandbox application`: https://github.com/edoburu/django-oscar-docdata/tree/master/sandbox
