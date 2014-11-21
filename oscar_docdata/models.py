@@ -1,7 +1,9 @@
 from decimal import Decimal as D
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from oscar_docdata.managers import DocdataOrderManager
 from polymorphic import PolymorphicModel
+from . import appsettings
 
 
 class DocdataOrder(models.Model):
@@ -32,6 +34,7 @@ class DocdataOrder(models.Model):
         (STATUS_UNKNOWN, _("Unknown")),
     )
 
+    merchant_name = models.CharField(_("Docdata account"), max_length=100, default=lambda: appsettings.DOCDATA_MERCHANT_NAME)
     merchant_order_id = models.CharField(_("Order ID"), max_length=100, default='')
     order_key = models.CharField(_("Payment cluster ID"), max_length=200, default='', unique=True)
 
@@ -55,6 +58,8 @@ class DocdataOrder(models.Model):
     # Internal info.
     created = models.DateTimeField(_("created"), auto_now_add=True)
     updated = models.DateTimeField(_("updated"), auto_now=True)
+
+    objects = DocdataOrderManager()
 
     class Meta:
         ordering = ('-created', '-updated')

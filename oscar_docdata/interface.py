@@ -93,6 +93,7 @@ class Interface(object):
         Store the order_key for local status checking.
         """
         DocdataOrder.objects.create(
+            merchant_name=appsettings.DOCDATA_MERCHANT_NAME,
             merchant_order_id=order_number,
             order_key=order_key,
             total_gross_amount=amount.value,
@@ -114,7 +115,7 @@ class Interface(object):
 
     def start_payment(self, order_key, payment, payment_method=None):
 
-        order = DocdataOrder.objects.select_for_update().get(order_key=order_key)
+        order = DocdataOrder.objects.select_for_update().current_merchant().get(order_key=order_key)
         amount = None
 
         # This can raise an exception.

@@ -22,12 +22,14 @@ class Command(NoArgsCommand):
         if status and status not in all_status_choices:
             raise CommandError("Invalid status, valid choices are: {0}".format(", ".join(sorted(all_status_choices))))
 
+        base_qs = DocdataOrder.objects.current_merchant()
+
         try:
-            start_date = DocdataOrder.objects.values_list('created', flat=True).order_by('created')[0]
+            start_date = base_qs.values_list('created', flat=True).order_by('created')[0]
         except IndexError:
             self.stdout.write("No orders available")
 
-        currencies = list(DocdataOrder.objects.values_list('currency', flat=True).order_by('currency').distinct())
+        currencies = list(base_qs.values_list('currency', flat=True).order_by('currency').distinct())
 
         tzinfo = get_current_timezone()
         cur_date = datetime(start_date.year, start_date.month, 1, tzinfo=tzinfo)
@@ -51,7 +53,7 @@ class Command(NoArgsCommand):
             else:
                 next_date = datetime(cur_date.year, cur_date.month + 1, 1, tzinfo=tzinfo)
 
-            qs = DocdataOrder.objects.filter(created__range=(cur_date, next_date))
+            qs = base_qs.filter(created__range=(cur_date, next_date))
             if status:
                 qs = qs.filter(status=status)
 

@@ -19,7 +19,7 @@ class Command(NoArgsCommand):
         """
         is_dry_run = options.get('dry-run', False)
 
-        qs = DocdataOrder.objects \
+        qs = DocdataOrder.objects.current_merchant() \
             .filter(status__in=(DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS)) \
             .filter(created__lt=(now() - timedelta(days=21)))  # 3 weeks, based on manual testing.
 

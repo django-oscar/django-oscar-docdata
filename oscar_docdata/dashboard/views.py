@@ -24,7 +24,11 @@ class DocdataOrderListView(ListView):
         Build the queryset for this list.
         """
         qs = super(DocdataOrderListView, self).get_queryset()
-        self.form = None
+
+        # Always show the current merchant only.
+        # Can't use the the API calls for different merchants anyway,
+        # and this makes it possible to use a multi-tenant site.
+        qs = qs.current_merchant()
 
         # Look for shortcut query filters
         if 'order_number' in self.request.GET or 'order_status' in self.request.GET:
