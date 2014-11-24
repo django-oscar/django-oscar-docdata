@@ -26,6 +26,10 @@ Configure the application:
 `DOCDATA_MERCHANT_PASSWORD`
     Credentials as supplied by the payment provider.
 
+`DOCDATA_PROFILE`
+    The payment-methods profile that is created in the Docdata Backoffice.
+    By default, this is named "standard".
+
 `DOCDATA_TESTING`
     Whether or not to run in testing mode. Defaults to `True`.
 
@@ -93,6 +97,21 @@ This includes the project-specific desisions such as:
 * Which fields to map to the "house number" field. (e.g. ``line2``, ``line3`` or a custom field).
 * Whether to cancel an order when the customer aborted the payment.
 * When to submit confirmation emails.
+
+
+Configuration of the Docdata Backoffice
+---------------------------------------
+
+Make sure the following settings are filled in:
+
+* The "Payment Method names" need to be added to a profile (default value of ``DOCDATA_PROFILE`` is "standard").
+* The notification URL and return URL need to be set. Example values:
+
+ * Success: ``http://example.org/api/docdata/update_order/?callback=SUCCESS&order_id=``
+ * Cancelled: ``http://example.org/api/docdata/update_order/?callback=CANCELLED&order_id=``
+ * Error: ``http://example.org/api/docdata/update_order/?callback=ERROR&order_id=``
+ * Pending: ``http://example.org/api/docdata/update_order/?callback=PENDING&order_id=``
+ * Update URL: ``http://example.org/api/docdata/update_order/?order_id=``
 
 
 Caveats
