@@ -7,7 +7,7 @@ from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
 from oscar_docdata.compat import get_model
 from oscar_docdata.exceptions import DocdataCreateError
-from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount
+from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount, to_iso639_part1
 from oscar_docdata.interface import Interface
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class Facade(Interface):
                 id=user.id,
                 name=shopper_name,
                 email=user.email,
-                language=_to_iso639_part1(language or get_language()),
+                language=to_iso639_part1(language or get_language()),
                 gender='U'
             ),
             bill_to=Destination(
@@ -134,8 +134,3 @@ class Facade(Interface):
         _lazy_get_models()
         source_type, _ = SourceType.objects.get_or_create(code='docdata', defaults={'name': "Docdata Payments"})
         return source_type
-
-
-def _to_iso639_part1(language_code):
-    # Convert codes like "en-us" to "en"
-    return language_code.split('-', 1)[0]

@@ -817,3 +817,10 @@ class ElvPayment(Payment):
         node.accountNumber = self.account_number
         node.bankCode = self.bank_code
         return node
+
+
+def to_iso639_part1(language_code):
+    """
+    Convert codes like "en-us" to "en"
+    """
+    return language_code.split('-', 1)[0]
