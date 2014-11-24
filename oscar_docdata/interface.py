@@ -69,12 +69,25 @@ class Interface(object):
         # May raise an DocdataCreateError exception
         call_args = self.get_create_payment_args(
             # Pass all as kwargs, make it easier for subclasses to override using *args, **kwargs and fetch all by name.
-            order_number=order_number, total=total, user=user, language=language, description=description, profile=profile, **kwargs
+            order_number=order_number,
+            total=total,
+            user=user,
+            language=language,
+            description=description,
+            profile=profile,
+            **kwargs
         )
         createsuccess = self.client.create(**call_args)
 
         # Track order_key for local logging
-        self._store_create_success(order_number, createsuccess.order_key, call_args['total_gross_amount'], language, call_args.get('bill_to'))
+        destination = call_args.get('bill_to')
+        self._store_create_success(
+            order_number=order_number,
+            order_key=createsuccess.order_key,
+            amount=call_args['total_gross_amount'],
+            language=language,
+            country_code=destination.address.country_code if destination else None
+        )
 
         # Return for further reference
         return createsuccess.order_key
@@ -88,7 +101,7 @@ class Interface(object):
         raise NotImplementedError("Missing get_create_payment_args() implementation!")
 
 
-    def _store_create_success(self, order_number, order_key, amount, language, destination):
+    def _store_create_success(self, order_number, order_key, amount, language, country_code):
         """
         Store the order_key for local status checking.
         """
@@ -99,7 +112,7 @@ class Interface(object):
             total_gross_amount=amount.value,
             currency=amount.currency,
             language=language,
-            country=destination.address.country_code if destination else None
+            country=country_code
         )
 
 
