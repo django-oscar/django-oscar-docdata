@@ -3,7 +3,6 @@ from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpRespon
     HttpResponseServerError
 from django.utils import translation
 from django.views.generic import View
-from oscar.core.loading import get_class
 from oscar_docdata import appsettings
 from oscar_docdata.compat import transaction_atomic
 from oscar_docdata.exceptions import DocdataStatusError
@@ -12,8 +11,6 @@ from oscar_docdata.models import DocdataOrder
 from oscar_docdata.signals import return_view_called, status_changed_view_called
 
 logger = logging.getLogger(__name__)
-
-OrderPlacementMixin = get_class('checkout.mixins', 'OrderPlacementMixin')
 
 
 class UpdateOrderMixin(object):
@@ -61,9 +58,24 @@ class UpdateOrderMixin(object):
         facade.update_order(order)
 
 
-class OrderReturnView(UpdateOrderMixin, OrderPlacementMixin, View):
+class OrderReturnView(UpdateOrderMixin, View):
     """
     The view to redirect to after a successful order creation.
+
+    The URL to this view can be entered in the Docdata backoffice.
+    Include the full URL, including ``?callback=...&order_id=``. The URL is appended with the order ID.
+    For example::
+
+        http://www.merchantwebsite.com/api/docdata/return/?callback=SUCCESS&order_id=
+        http://www.merchantwebsite.com/api/docdata/return/?callback=CANCELLED&order_id=
+        http://www.merchantwebsite.com/api/docdata/return/?callback=ERROR&order_id=
+        http://www.merchantwebsite.com/api/docdata/return/?callback=PENDING&order_id=
+
+    When using :func:`~oscar_docdata.gateway.Gateway.get_payment_menu_url`, these
+    URLs are also included in the redirect URL. However, the Docdata Backoffice
+    requires default URLs to be filled in.
+
+    The use of this service is optional, but recommended.
     """
     order_slug_field = 'order_key'
     success_url = appsettings.DOCDATA_SUCCESS_URL
