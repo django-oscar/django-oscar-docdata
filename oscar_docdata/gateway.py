@@ -581,7 +581,8 @@ class Shopper(object):
         language_node._code = self.language
 
         node = factory.create('ns0:shopper')
-        node._id = self.id  # attribute, hence the ._id
+        if self.id is not None and self.id != '':
+            node._id = self.id  # attribute, hence the ._id
         node.name = self.name.to_xml(factory)
         node.gender = self.gender.upper() if self.gender else "U"
         node.language = language_node
