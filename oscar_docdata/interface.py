@@ -74,7 +74,7 @@ class Interface(object):
         createsuccess = self.client.create(**call_args)
 
         # Track order_key for local logging
-        self._store_create_success(order_number, createsuccess.order_key, call_args['total_gross_amount'], call_args['shopper'], call_args.get('bill_to'))
+        self._store_create_success(order_number, createsuccess.order_key, call_args['total_gross_amount'], language, call_args.get('bill_to'))
 
         # Return for further reference
         return createsuccess.order_key
@@ -88,7 +88,7 @@ class Interface(object):
         raise NotImplementedError("Missing get_create_payment_args() implementation!")
 
 
-    def _store_create_success(self, order_number, order_key, amount, shopper, destination):
+    def _store_create_success(self, order_number, order_key, amount, language, destination):
         """
         Store the order_key for local status checking.
         """
@@ -98,7 +98,7 @@ class Interface(object):
             order_key=order_key,
             total_gross_amount=amount.value,
             currency=amount.currency,
-            language=shopper.language,
+            language=language,
             country=destination.address.country_code if destination else None
         )
 
