@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.2.4
+-------------
+
+* Added support for multiple merchant accounts in a single database (multi-tenant support).
+* Added methods to ``DocdataOrder.objects``: ``current_merchant()``, ``for_reference()``, ``for_order()``.
+* Added ``DOCDATA_FACADE_CLASS`` setting, so all views use a custom Facade
+* Added ``oscar_docdata.gateway.to_iso639_part1()`` function, for sending language codes in the proper format.
+
 Version 1.2.3
 -------------
 
