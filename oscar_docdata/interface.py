@@ -62,6 +62,7 @@ class Interface(object):
         :param total: The price object, inclusing totals and currency.
         :type total: :class:`oscar.core.prices.Price`
         :type user: :class:`django.contrib.auth.models.User`
+        :returns: The Docdata order reference ("order key").
         """
         if not language:
             language = get_language()
