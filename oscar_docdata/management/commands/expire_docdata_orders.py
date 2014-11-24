@@ -2,7 +2,7 @@ from datetime import timedelta
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
 from django.utils.timezone import now
-from oscar_docdata.facade import Facade
+from oscar_docdata.facade import get_facade
 from oscar_docdata.models import DocdataOrder
 
 
@@ -23,7 +23,7 @@ class Command(NoArgsCommand):
             .filter(status__in=(DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS)) \
             .filter(created__lt=(now() - timedelta(days=21)))  # 3 weeks, based on manual testing.
 
-        facade = Facade()
+        facade = get_facade()
 
         if is_dry_run:
             self.stdout.write(u"Expiring orders (DRY-RUN):")

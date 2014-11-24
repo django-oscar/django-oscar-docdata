@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, View, DeleteView
 from django.views.generic.detail import SingleObjectMixin
 from oscar_docdata.exceptions import DocdataStatusError, DocdataCancelError
-from oscar_docdata.facade import Facade
+from oscar_docdata.facade import get_facade
 from oscar_docdata.models import DocdataOrder
 from .forms import DocdataOrderSearchForm
 
@@ -83,7 +83,7 @@ class DocdataOrderUpdateStatusView(SingleObjectMixin, View):
 
         # Perform update.
         try:
-            facade = Facade()
+            facade = get_facade()
             facade.update_order(self.object)
         except DocdataStatusError as e:
             messages.error(request, e.value)
@@ -109,7 +109,7 @@ class DocdataOrderCancelView(DeleteView):
 
         # Perform cancel
         try:
-            facade = Facade()
+            facade = get_facade()
             facade.cancel_order(self.object)
         except DocdataCancelError as e:
             messages.error(request, e.value)

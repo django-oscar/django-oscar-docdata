@@ -28,6 +28,9 @@ DOCDATA_PENDING_URL = getattr(settings, 'DOCDATA_PENDING_URL', DOCDATA_REDIRECT_
 DOCDATA_ERROR_URL = getattr(settings, 'DOCDATA_ERROR_URL', '/')
 DOCDATA_CANCELLED_URL = getattr(settings, 'DOCDATA_CANCELLED_URL', '/')
 
+# Facade class to use
+DOCDATA_FACADE_CLASS = getattr(settings, 'DOCDATA_FACADE_CLASS', 'oscar_docdata.facade.Facade')
+
 # Translate the docdata order status to the configured OSCAR_ORDER_STATUS_PIPELINE
 # If a value is missing, the raw DocdataOrder status value will be inserted.
 # Possible values are: new, in_progress, paid, changed_back, cancelled, pending, refunded, unknown

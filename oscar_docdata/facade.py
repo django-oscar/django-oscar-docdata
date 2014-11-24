@@ -9,11 +9,19 @@ from oscar_docdata.compat import get_model
 from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount, to_iso639_part1
 from oscar_docdata.interface import Interface
+from oscar_docdata.utils.load import import_class
+
+__all__ = (
+    'get_facade',
+    'get_facade_class',
+    'Facade',
+)
 
 logger = logging.getLogger(__name__)
 
 Order = None
 SourceType = None
+_FacadeClass = None
 
 def _lazy_get_models():
     # This avoids various import conflicts between apps that may
@@ -23,6 +31,30 @@ def _lazy_get_models():
     if Order is None:
         Order = get_model('order', 'Order')
         SourceType = get_model('payment', 'SourceType')
+
+
+def get_facade(*args, **kwargs):
+    """
+    Get the proper Facade object instance.
+    This reads the ``DOCDATA_FACADE_CLASS`` setting.
+    """
+    FacadeClass = get_facade_class()
+    return FacadeClass(*args, **kwargs)
+
+
+def get_facade_class():
+    """
+    Get the proper Facade object instance.
+    This reads the ``DOCDATA_FACADE_CLASS`` setting.
+    """
+    global _FacadeClass
+    if _FacadeClass is not None:
+        return _FacadeClass
+
+    # Import it.
+    _FacadeClass = import_class(appsettings.DOCDATA_FACADE_CLASS, 'DOCDATA_FACADE_CLASS')
+    return _FacadeClass
+
 
 
 class Facade(Interface):

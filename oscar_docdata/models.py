@@ -80,8 +80,8 @@ class DocdataOrder(models.Model):
         """
         Cancel an order in Docdata.
         """
-        from .facade import Facade
-        facade = Facade()
+        from .facade import get_facade
+        facade = get_facade()
         facade.cancel_order(self)
 
     cancel.alters_data = True

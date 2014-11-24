@@ -7,7 +7,7 @@ from oscar.core.loading import get_class
 from oscar_docdata import appsettings
 from oscar_docdata.compat import transaction_atomic
 from oscar_docdata.exceptions import DocdataStatusError
-from oscar_docdata.facade import Facade
+from oscar_docdata.facade import get_facade
 from oscar_docdata.models import DocdataOrder
 from oscar_docdata.signals import return_view_called, status_changed_view_called
 
@@ -25,7 +25,17 @@ class UpdateOrderMixin(object):
     # Docdata uses both the order_key and merchant_order_id in the requests, depending on the view.
     order_query_arg = 'order_id'
     order_slug_field = 'order_key'
-    facade_class = Facade
+
+    # This is still here for backwards compatibility,
+    # but setting ``DOCDATA_FACADE_CLASS`` is a better option nowadays.
+    facade_class = None
+
+    def get_facade(self):
+        if self.facade_class is not None:
+            return self.facade_class()
+        else:
+            # Making sure the object is lazy-imported.
+            return get_facade()
 
     def get_order_slug(self):
         try:
@@ -47,7 +57,7 @@ class UpdateOrderMixin(object):
 
     def update_order(self, order):
         # Ask the facade to request the status, and update the order accordingly.
-        facade = self.facade_class()
+        facade = self.get_facade()
         facade.update_order(order)
 
 
