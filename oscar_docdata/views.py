@@ -171,4 +171,4 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
         responses = status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
 
         # Return 200 as required by DocData when the status changed notification was consumed.
-        return HttpResponse(u"ok, order updated", content_type='text/plain; charset=utf-8')
+        return HttpResponse(u"ok, order {0} updated\n".format(order_key), content_type='text/plain; charset=utf-8')
