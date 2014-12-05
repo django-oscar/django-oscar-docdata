@@ -451,10 +451,11 @@ class Interface(object):
 
                 else:
                     # Show as error instead.
-                    logger.error("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
+                    logger.error(
+                        "Order {0} chargeback and refunded sum is negative. Please investigate.\n"
+                        "Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
                         order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
                     ))
-                    logger.error("Captured {0}, chargeback and refunded sum is negative. Please investigate.".format(order.order_key))
                     new_status = DocdataOrder.STATUS_UNKNOWN
 
 
