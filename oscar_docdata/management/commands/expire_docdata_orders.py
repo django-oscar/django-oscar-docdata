@@ -1,6 +1,7 @@
 from datetime import timedelta
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
+from django.db import transaction
 from django.utils.timezone import now
 from oscar_docdata.facade import get_facade
 from oscar_docdata.models import DocdataOrder
@@ -39,12 +40,13 @@ class Command(NoArgsCommand):
             order.status = DocdataOrder.STATUS_EXPIRED
 
             if not is_dry_run:
-                # More efficient SQL
-                DocdataOrder.objects.filter(id=order.id).update(status=DocdataOrder.STATUS_EXPIRED)
+                with transaction.atomic():
+                    # More efficient SQL
+                    DocdataOrder.objects.filter(id=order.id).update(status=DocdataOrder.STATUS_EXPIRED)
 
-                try:
-                    # Make sure Oscar is updated, and the signal is sent.
-                    facade.order_status_changed(order, old_status, order.status)
-                except Exception as e:
-                    self.stderr.write(u"Failed to update order {0}: {1}".format(order.id, e))
-                    DocdataOrder.objects.filter(id=order.id).update(status=old_status)
+                    try:
+                        # Make sure Oscar is updated, and the signal is sent.
+                        facade.order_status_changed(order, old_status, order.status)
+                    except Exception as e:
+                        self.stderr.write(u"Failed to update order {0}: {1}".format(order.id, e))
+                        DocdataOrder.objects.filter(id=order.id).update(status=old_status)
