@@ -4,9 +4,11 @@ The main code to interface with Docdata.
 This module is Oscar agnostic, and can be used in any other project.
 The Oscar specific code is in the facade.
 """
+from datetime import timedelta
 import logging
 from decimal import Decimal as D
 from django.db import IntegrityError, transaction
+from django.utils.timezone import now
 from django.utils.translation import get_language
 from oscar_docdata import appsettings
 from oscar_docdata.gateway import DocdataClient
@@ -175,21 +177,6 @@ class Interface(object):
         """
         Store the retrieved status report in the order object.
         """
-        if hasattr(report, 'payment'):
-            # Store all report lines, make an analytics of the new status
-            latest_payment = self._store_report_lines(order, report)
-            new_status = self._get_new_status(order, report, latest_payment)
-        else:
-            # There are no payments. It's really annoying to see that the Docdata status API
-            # doesn't actually return a global "payment cluster" status code.
-            # There are only status codes for the payment (which corresponds with a payment attempts by the user).
-            # Make our best efforts here.
-            new_status = indented_status or DocdataOrder.STATUS_NEW
-
-        # Store status
-        old_status = order.status
-        status_changed = self._set_status(order, new_status)
-
         # Store totals
         totals = report.approximateTotals
         order.total_registered = D(totals.totalRegistered) / 100
@@ -199,6 +186,47 @@ class Interface(object):
         order.total_captured = D(totals.totalCaptured) / 100
         order.total_refunded = D(totals.totalRefunded) / 100
         order.total_charged_back = D(totals.totalChargedback) / 100
+
+        if hasattr(report, 'payment'):
+            # Store all report lines, make an analytics of the new status
+            latest_payment = self._store_report_lines(order, report)
+            new_status = self._get_new_status(order, report, latest_payment)
+        else:
+            # There are no payments. It's really annoying to see that the Docdata status API
+            # doesn't actually return a global "payment cluster" status code.
+            # There are only status codes for the payment (which corresponds with a payment attempts by the user).
+            # Make our best efforts here, based on some heuristics of the approximateTotals field.
+            if totals.totalShopperPending == 0 \
+            and totals.totalAcquirerPending == 0 \
+            and totals.totalAcquirerApproved == 0 \
+            and totals.totalCaptured == 0 \
+            and totals.totalRefunded == 0 \
+            and totals.totalChargedback == 0:
+                # Everything is 0, either cancelled or expired
+                if order.status == DocdataOrder.STATUS_CANCELLED:
+                    new_status = order.status  # Stay in cancelled, don't become expired
+                else:
+                    if order.created < (now() - timedelta(days=21)):
+                        # Will only expire old orders of more then 21 days.
+                        new_status = indented_status or DocdataOrder.STATUS_EXPIRED
+                    else:
+                        # Status API likely received cancelled state.
+                        new_status = indented_status or DocdataOrder.STATUS_CANCELLED
+            else:
+                logger.error(
+                    "Payment cluster {0} has no payment yet, and unknown 'approximateTotals' heuristics.\n"
+                    "Status can't be reliably determined. Please investigate.\n"
+                    "Totals={1}".format(order.order_key, totals)
+                )
+                if order.status in (DocdataOrder.STATUS_EXPIRED, DocdataOrder.STATUS_CANCELLED):
+                    # Stay in cancelled/expired, don't switch back to NEW
+                    new_status = order.status
+                else:
+                    new_status = indented_status or DocdataOrder.STATUS_NEW
+
+        # Store status
+        old_status = order.status
+        status_changed = self._set_status(order, new_status)
 
         order.save()
 
@@ -388,6 +416,13 @@ class Interface(object):
         # Some status mapping overrides.
         # Using status of last payment report line.
         new_status = self.status_mapping.get(str(latest_payment_report.authorization.status), DocdataOrder.STATUS_UNKNOWN)
+
+        # Stay in cancelled/expired, don't switch back to NEW
+        # Even though the payment cluster is set to 'closed_expired',
+        # Docdata doesn't expire the individual payment report lines.
+        if order.status in (DocdataOrder.STATUS_EXPIRED, DocdataOrder.STATUS_CANCELLED) \
+        and new_status in (DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS):
+            new_status = order.status
 
         # Integration Manual Order API 1.0 - Document version 1.0, 08-12-2012 - Page 33:
         #

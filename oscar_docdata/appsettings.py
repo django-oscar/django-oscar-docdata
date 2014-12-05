@@ -18,6 +18,7 @@ DOCDATA_TESTING = getattr(settings, 'DOCDATA_TESTING', True)
 DOCDATA_PROFILE = getattr(settings, 'DOCDATA_PROFILE', 'standard')
 
 # The default expected number of days in which the payment should be processed, or be expired if not paid.
+# This appears to be totally ignored by Docdata, choosing their default 21 days (based on manual testing)
 DOCDATA_DAYS_TO_PAY = getattr(settings, 'DOCDATA_DAYS_TO_PAY', 7)
 
 # The default URL to redirect to. Defaults to a django-oscar view, but it can be any view of your choice.
