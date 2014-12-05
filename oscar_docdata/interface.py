@@ -202,7 +202,7 @@ class Interface(object):
             and totals.totalCaptured == 0 \
             and totals.totalRefunded == 0 \
             and totals.totalChargedback == 0:
-                # Everything is 0, either cancelled or expired
+                # Everything is 0, either started, cancelled or expired
                 if order.status == DocdataOrder.STATUS_CANCELLED:
                     new_status = order.status  # Stay in cancelled, don't become expired
                 else:
@@ -210,8 +210,8 @@ class Interface(object):
                         # Will only expire old orders of more then 21 days.
                         new_status = indented_status or DocdataOrder.STATUS_EXPIRED
                     else:
-                        # Status API likely received cancelled state.
-                        new_status = indented_status or DocdataOrder.STATUS_CANCELLED
+                        # Either new or cancelled, can't determine!
+                        new_status = indented_status or DocdataOrder.STATUS_NEW
             else:
                 logger.error(
                     "Payment cluster {0} has no payment yet, and unknown 'approximateTotals' heuristics.\n"
