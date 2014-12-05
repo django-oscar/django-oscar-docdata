@@ -146,7 +146,7 @@ class Facade(Interface):
         order = Order.objects.select_for_update().get(number=docdataorder.merchant_order_id)
         if order.status == project_status:
             # Parallel update by docdata (return URL and callback), avoid sending the signal twice to the user code.
-            logging.info("Order {0} status is already {1}, skipping signal.".format(order.number))
+            logging.info("Order {0} status is already {1}, skipping signal.".format(order.number, order.status))
             return
 
         # Not using Order.set_status(), forcefully set it to the current situation.
