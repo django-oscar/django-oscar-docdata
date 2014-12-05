@@ -397,7 +397,7 @@ class DocdataClient(object):
             return StatusReply(order_key, reply.statusSuccess.report)
         elif hasattr(reply, 'statusError'):
             error = reply.statusError.error
-            log_docdata_error(error, "DocdataClient: failed to get status for order {0}".format(order_key))
+            log_docdata_error(error, "DocdataClient: failed to get status for payment cluster {0}".format(order_key))
             raise DocdataStatusError(error._code, error.value)
         else:
             logger.error("Unexpected response node from docdata!")
@@ -421,7 +421,7 @@ class DocdataClient(object):
             return StatusReply(order_key, reply.statusSuccess.report)
         elif hasattr(reply, 'statusError'):
             error = reply.statusError.error
-            log_docdata_error(error, "DocdataClient: failed to get status for order {0}".format(order_key))
+            log_docdata_error(error, "DocdataClient: failed to get status for payment cluster {0}".format(order_key))
             raise DocdataStatusError(error._code, error.value)
         else:
             logger.error("Unexpected response node from docdata!")

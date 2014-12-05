@@ -212,7 +212,7 @@ class Interface(object):
         """
         old_status = order.status
         if old_status != new_status:
-            logger.info("Order {0} status changed {1} -> {2}".format(order.order_key, old_status, new_status))
+            logger.info("Payment cluster {0} status changed {1} -> {2}".format(order.order_key, old_status, new_status))
 
             if new_status not in dict(DocdataOrder.STATUS_CHOICES):
                 new_status = DocdataOrder.STATUS_UNKNOWN
@@ -418,12 +418,12 @@ class Interface(object):
                     # With all capture changes etc.. it's still what was registered.
                     # Full amount is paid.
                     new_status = DocdataOrder.STATUS_PAID
-                    logger.info("Total {0} Registered: {1} >= Total Captured: {2} (margin: {3}); new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured, margin))
+                    logger.info("Payment cluster {0} Registered: {1} >= Total Captured: {2} (margin: {3}); new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured, margin))
 
                 elif payment_sum == 0:
                     # A payment was captured, but the totals are 0.
                     # See if there is a charge back or refund.
-                    logger.info("Order {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
+                    logger.info("Payment cluster {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
                         order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
                     ))
 
@@ -434,16 +434,16 @@ class Interface(object):
                     # TODO: Add chargeback fee somehow (currently E0.50).
                     if totals.totalCaptured == totals.totalChargedback:
                         if hasattr(authorization, 'chargeback') and len(authorization.chargeback) > 0:
-                            logger.info("Order {0} chargedback: {1}".format(order.order_key, authorization.chargeback[0].reason))
+                            logger.info("Payment cluster {0} chargedback: {1}".format(order.order_key, authorization.chargeback[0].reason))
                         else:
-                            logger.info("Order {0} chargedback.".format(order.order_key))
+                            logger.info("Payment cluster {0} chargedback.".format(order.order_key))
 
                         new_status = DocdataOrder.STATUS_CHARGED_BACK
 
                     # Refund.
                     # TODO: Log more info from refund when we have an example.
                     if totals.totalCaptured == totals.totalRefunded:
-                        logger.info("Payment {0} refunded.".format(order.order_key))
+                        logger.info("Payment cluster {0} refunded.".format(order.order_key))
                         new_status = DocdataOrder.STATUS_REFUNDED
 
                     #payment.amount = 0
@@ -452,10 +452,9 @@ class Interface(object):
                 else:
                     # Show as error instead.
                     logger.error(
-                        "Order {0} chargeback and refunded sum is negative. Please investigate.\n"
-                        "Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
-                        order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
-                    ))
+                        "Payment cluster {0} chargeback and refunded sum is negative. Please investigate.\n"
+                        "Totals={1}".format(order.order_key, totals)
+                    )
                     new_status = DocdataOrder.STATUS_UNKNOWN
 
 
@@ -463,7 +462,7 @@ class Interface(object):
         total_registered = long(totals.totalRegistered)
         total_gross_cents = long(order.total_gross_amount * 100)
         if new_status != DocdataOrder.STATUS_CANCELLED and total_registered != total_gross_cents:
-            logger.error("Order {0} total: {1} does not equal Total Registered: {2}.".format(order.order_key, total_gross_cents, total_registered))
+            logger.error("Payment cluster {0} total: {1} does not equal Total Registered: {2}.".format(order.order_key, total_gross_cents, total_registered))
 
         return new_status
 
