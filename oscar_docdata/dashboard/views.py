@@ -18,6 +18,7 @@ class DocdataOrderListView(ListView):
     model = DocdataOrder
     template_name = 'oscar_docdata/dashboard/orders/list.html'
     form_class = DocdataOrderSearchForm
+    paginate_by = 25
 
     def get_queryset(self):
         """

@@ -8,6 +8,8 @@ Version 1.2.4
 * Added methods to ``DocdataOrder.objects``: ``current_merchant()``, ``for_reference()``, ``for_order()``.
 * Added ``DOCDATA_FACADE_CLASS`` setting, so all views use a custom Facade
 * Added ``oscar_docdata.gateway.to_iso639_part1()`` function, for sending language codes in the proper format.
+* Added pagination in docdata dashboard view
+* Improve ``/api/docdata/update/`` output for curl usage.
 
 Version 1.2.3
 -------------
