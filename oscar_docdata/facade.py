@@ -96,37 +96,26 @@ class Facade(Interface):
         if not profile:
             profile = appsettings.DOCDATA_PROFILE
 
-        shopper_name = Name(
-            first=user.first_name,
-            last=user.last_name
-        )
-
-        bill_to_name = Name(
-            first=billingaddress.first_name or user.first_name,
-            last=billingaddress.last_name or user.last_name
-        )
-
         return dict(
             order_id=order_number,
             total_gross_amount=Amount(total.incl_tax, total.currency),
             shopper=Shopper(
                 id=user.id,
-                name=shopper_name,
+                name=Name(
+                    first=user.first_name,
+                    last=user.last_name,
+                ),
                 email=user.email,
                 language=to_iso639_part1(language or get_language()),
                 gender='U'
             ),
             bill_to=Destination(
-                bill_to_name,
-                address=Address(                            # NOTE: oscar has no street / housenumber fields!
-                    street=billingaddress.line1[:32],       # Docdata has a 32 char limit on street
-                    house_number='N/A',                     # Field is required! Could consider passing nbsp or line2 ('\xc2\xa0')
-                    house_number_addition=None,
-                    postal_code=billingaddress.postcode,
-                    city=billingaddress.city,
-                    state=billingaddress.state,
-                    country_code=billingaddress.country_id  # The Country.iso_3166_1_a2 field.
-                )
+                name=Name(
+                    first=billingaddress.first_name or user.first_name,
+                    last=billingaddress.last_name or user.last_name,
+                    prefix=billingaddress.title or None
+                ),
+                address=Address.from_address(billingaddress),
             ),
             description=description,
             profile=profile

@@ -32,6 +32,9 @@ DOCDATA_CANCELLED_URL = getattr(settings, 'DOCDATA_CANCELLED_URL', '/')
 # Facade class to use
 DOCDATA_FACADE_CLASS = getattr(settings, 'DOCDATA_FACADE_CLASS', 'oscar_docdata.facade.Facade')
 
+# Field to read for the housenumber field. (e.g. line3?)
+DOCDATA_HOUSE_NUMBER_FIELD = getattr(settings, 'DOCDATA_HOUSE_NUMBER_FIELD', None)
+
 # Translate the docdata order status to the configured OSCAR_ORDER_STATUS_PIPELINE
 # If a value is missing, the raw DocdataOrder status value will be inserted.
 # Possible values are: new, in_progress, paid, changed_back, cancelled, pending, refunded, unknown

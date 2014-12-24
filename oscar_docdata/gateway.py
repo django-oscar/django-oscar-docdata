@@ -5,13 +5,19 @@ Gateway module - this module is ignorant of Oscar and could be used in a non-Osc
 All Oscar-related functionality should be in the facade.
 """
 import logging
+from decimal import Decimal as D
+import urlparse
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-import suds
+from django.utils.text import Truncator
+from oscar.core.loading import get_model
+import suds.client
 import suds.plugin
 from django.core.urlresolvers import reverse
 from django.utils.translation import get_language
 from urllib import urlencode
 from urllib2 import URLError
+from suds.sax.element import Element
 from oscar_docdata import appsettings, __version__ as oscar_docdata_version
 from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
 
@@ -29,6 +35,9 @@ __all__ = (
     'Destination',
     'Address',
     'Amount',
+    'Vat',
+    'Invoice',
+    'Item',
 
     'Payment',
     'AmexPayment',
@@ -63,10 +72,17 @@ def get_suds_client(testing_mode=False):
         url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
     else:
         url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
+    # Online preview: https://secure.docdatapayments.com/ps/orderapi-1_2.wsdl
 
     # TODO: CACHE THIS object, avoid having to request the WSDL at every instance.
     try:
-        return suds.client.Client(url, plugins=[DocdataAPIVersionPlugin()])
+        client = suds.client.Client(url, plugins=[DocdataAPIVersionPlugin()])
+        # HACK: Fixes serialization of raw Element objects.
+        # Otherwise, the Element is appended as <tagname /> in the request.
+        # The debug output of 'suds.client' won't show this,
+        # but the debug output of 'suds' will.
+        client.options.prettyxml = True
+        return client
     except URLError as e:
         logger.error('{0} {1}'.format("Could not initialize SUDS SOAP client to connect to Docdata", str(e)))
         raise
@@ -200,6 +216,7 @@ class DocdataClient(object):
             shopper,
             bill_to,
             description,
+            invoice=None,
             receiptText=None,
             includeCosts=False,
             profile=appsettings.DOCDATA_PROFILE,
@@ -250,23 +267,28 @@ class DocdataClient(object):
         #     merchant merchant, string35 merchantOrderReference, paymentPreferences paymentPreferences,
         #     menuPreferences menuPreferences, shopper shopper, amount totalGrossAmount,
         #     destination billTo, string50 description, string50 receiptText, xs:boolean includeCosts,
-        #     paymentRequest paymentRequest, invoice invoice )
+        #     paymentRequest paymentRequest, invoice invoice, technicalIntegrationInfo integrationInfo )
         #
-        # The WSDL and XSD also contain documentation individualnvidual parameters:
-        # https://secure.docdatapayments.com/ps/services/paymentservice/1_0?xsd=1
+        # The WSDL and XSD also contain documentation individual parameters:
+        # https://secure.docdatapayments.com/ps/services/paymentservice/1_2?xsd=1
         #
-        # TODO: can also pass shipTo + invoice details to docdata.
         # This displays the results in the docdata web menu.
         #
+        factory = self.client.factory
         reply = self.client.service.create(
-            self.merchant, order_id, paymentPreferences, menuPreferences,
-            shopper.to_xml(self.client.factory),
-            total_gross_amount.to_xml(self.client.factory),
-            bill_to.to_xml(self.client.factory),
-            description or None,
-            receiptText or None,
-            includeCosts or False,
-            integrationInfo=self.integration_info.to_xml(self.client.factory)
+            merchant=self.merchant,
+            merchantOrderReference=order_id,
+            paymentPreferences=paymentPreferences,
+            menuPreferences=menuPreferences,
+            shopper=shopper.to_xml(factory),
+            totalGrossAmount=total_gross_amount.to_xml(factory),
+            billTo=bill_to.to_xml(factory),
+            description=description or None,
+            receiptText=receiptText or None,
+            includeCosts=includeCosts or False,
+            # paymentRequest=None,
+            invoice=invoice.to_xml(factory) if invoice is not None else None,
+            integrationInfo=self.integration_info.to_xml(factory)
         )
 
         # Parse the reply
@@ -606,6 +628,20 @@ class Destination(object):
         self.name = name
         self.address = address
 
+    @classmethod
+    def from_address(cls, address):
+        """
+        :type address: :class:`~oscar.apps.address.abstract_models.AbstractAddress`
+        """
+        return cls(
+            name=Name(
+                first=address.first_name,
+                last=address.last_name,
+                prefix=address.title or None,
+            ),
+            address=Address.from_address(address),
+        )
+
     def to_xml(self, factory):
         node = factory.create('ns0:destination')
         node.name = self.name.to_xml(factory)
@@ -642,6 +678,29 @@ class Address(object):
         self.careOf = careOf
         #self.kvkNummer    # rant: seriously? a Netherlands-specific field in the API?
 
+    @classmethod
+    def from_address(cls, address):
+        """
+        :type address: :class:`~oscar.apps.address.abstract_models.AbstractAddress`
+        """
+        # NOTE: oscar has no separate field for house number!
+        # The field however is required! Could consider passing nbsp ('\xc2\xa0')
+        house_number = "N/A"
+        if appsettings.DOCDATA_HOUSE_NUMBER_FIELD:
+            value = getattr(address, appsettings.DOCDATA_HOUSE_NUMBER_FIELD)
+            if value and value.isdigit():
+                house_number = unicode(int(value))
+
+        return cls(
+            street=address.line1[:32],       # Docdata has a 32 char limit on street
+            house_number=house_number,
+            house_number_addition=None,
+            postal_code=address.postcode,
+            city=address.city,
+            state=address.state,
+            country_code=address.country_id  # The Country.iso_3166_1_a2 field.
+        )
+
     def to_xml(self, factory):
         country = factory.create('ns0:country')
         country._code = unicode(self.country_code)
@@ -674,6 +733,211 @@ class Amount(object):
         node = factory.create('ns0:amount')
         node.value = int(self.value * 100)   # No comma!
         node._currency = self.currency       # An attribute
+        return node
+
+
+class Vat(Amount):
+    """
+    An amount of Value-Added-Tax for an order.
+    """
+    def __init__(self, value, currency, rate):
+        super(Vat, self).__init__(value, currency)
+        self.rate = rate
+
+    @classmethod
+    def from_prices(cls, excl_tax, incl_tax, currency):
+        if excl_tax > incl_tax:
+            raise ValueError("Vat.from_prices() requires excl_tax <= incl_tax")
+
+        rate = int((D(incl_tax) / D(excl_tax) - 1) * 100)
+        return cls(
+            value=incl_tax - excl_tax,
+            currency=currency,
+            rate=rate,
+        )
+
+    def to_xml(self, factory):
+        node = factory.create('ns0:vat')
+        node.amount = super(Vat, self).to_xml(factory)
+        node._rate = self.rate
+        return node
+
+
+class TotalVatAmount(Vat):
+    """
+    A variation of the Vat for the totalVatAmount array.
+    """
+    @classmethod
+    def from_vat(cls, vat):
+        return cls(
+            value=vat.value,
+            currency=vat.currency,
+            rate=vat.rate,
+        )
+
+    def to_xml(self, factory):
+        # Dear Docdata: apparently, reusing Vat was not possible..?
+        #node = factory.create('ns0:totalVatAmount') does not support setting text.
+        element = Element('ns0:totalVatAmount')
+        element.setText(str(int(self.value * 100)))
+        element.set('rate', self.rate)
+        element.set('currency', self.currency)
+        return element
+
+
+class Quantity(object):
+    """
+    An quantity for Docdata
+    """
+    def __init__(self, value, unit='PCS'):
+        """
+        :param value: The numeric value
+        :type value: int
+        :param unit: The Unit of measurement.The attribute can have the following values:
+                     PCS - pieces
+                     SEC - seconds
+                     BYT - bytes
+                     KB - kilobytes
+        :type unit: str
+        """
+        self.value = value
+        self.unit = unit
+
+    def to_xml(self, factory):
+        # Needs to be an xsd:int with an attribute
+        # Can't do that with factory.create('ns0:quantity')
+        #metadata = factory.resolver.find('ns0:quantity')
+        #ns = metadata.namespace()
+
+        element = Element('ns0:quantity')
+        element.setText(str(self.value))
+        element.set('unitOfMeasure', self.unit)
+        return element
+
+
+class Invoice(object):
+    """
+    Optional additional data used for invoices.
+    """
+    def __init__(self, total_net_amount, total_vat_amount, items, ship_to, additional_description=None):
+        """
+        :type total_net_amount: Amount
+        :type total_vat_amount: Vat
+        :type items: list of Item
+        :type ship_to: Destination
+        :type additional_description: str
+        """
+        self.total_net_amount = total_net_amount
+        self.total_vat_amount = total_vat_amount
+        self.items = list(items) if items is not None else []
+        self.ship_to = ship_to
+        self.additional_description = additional_description
+
+    def to_xml(self, factory):
+        node = factory.create('ns0:invoice')
+        node.totalNetAmount = self.total_net_amount.to_xml(factory)
+        node.totalVatAmount = [TotalVatAmount.from_vat(self.total_vat_amount).to_xml(factory)]  # Can be repeated in WSDL...?!?
+        node.item = [item.to_xml(factory) for item in self.items]
+        node.shipTo = self.ship_to.to_xml(factory)
+        if self.additional_description:
+            node.additionalDescription = unicode(self.additional_description)  # max 100
+        return node
+
+
+class Item(object):
+    """
+    A single (line) item for this order.
+    """
+    def __init__(self, number, name, code, quantity, description, net_amount, gross_amount, vat, total_net_amount, total_gross_amount, total_vat, image_url=None):
+        """
+        :param number: Line ID
+        :type number: long
+        :param name: The human-readable name of this item. (max 50)
+        :param code: A code or article number identifying this item. (max 50)
+        :param quantity: Quantity of this item that's being ordered.
+        :type quantity: Quantity
+        :param description: The description of the item. (max 100)
+        :param net_amount: The net amount for a single piece of this item.
+        :type net_amount: Amount
+        :param gross_amount: The gross amount for a single piece of this item.
+        :type gross_amount: Amount
+        :param vat: The gross amount for a single piece of this item.
+        :type vat: Vat
+        :param total_net_amount: The net amount for a single piece of this item.
+        :type total_net_amount: Amount
+        :param total_gross_amount: The gross amount for a single piece of this item.
+        :type total_gross_amount: Amount
+        :param total_vat: The gross amount for a single piece of this item.
+        :type total_vat: Vat
+        :param image_url: URL to the items image (max 2048)
+        """
+        # Support simple values too
+        if isinstance(quantity, (int, long)):
+            quantity = Quantity(quantity, unit='PCS')
+
+        self.number = number
+        self.name = name
+        self.code = code
+        self.quantity = quantity
+        self.description = description
+        self.net_amount = net_amount
+        self.gross_amount = gross_amount
+        self.vat = vat
+        self.total_net_amount = total_net_amount
+        self.total_gross_amount = total_gross_amount
+        self.total_vat = total_vat
+        self.image_url = image_url
+
+    @classmethod
+    def from_line(cls, line):
+        BasketLine = get_model('basket', 'Line')
+        OrderLine = get_model('order', 'Line')
+        if isinstance(line, BasketLine):
+            currency = line.price_currency
+        elif isinstance(line, OrderLine):
+            currency = line.order.currency
+        else:
+            raise TypeError("Invalid argument type: {0}".format(line.__class__.__name__))
+
+        product = line.product
+
+        # See if we can provide an image
+        OSCAR_STATIC_BASE_URL = getattr(settings, 'OSCAR_STATIC_BASE_URL', None)
+        image_url = None
+        if OSCAR_STATIC_BASE_URL:
+            primary_image = product.primary_image
+            if primary_image and not isinstance(primary_image, dict):
+                image_url = urlparse.urljoin(OSCAR_STATIC_BASE_URL, primary_image.original.url)
+
+        return cls(
+            number=line.id,
+            name=product.get_title(),
+            code=product.upc,
+            quantity=Quantity(line.quantity),
+            description=Truncator(product.description).chars(100),
+            net_amount=Amount(line.unit_price_excl_tax, currency),
+            gross_amount=Amount(line.unit_price_incl_tax, currency),
+            vat=Vat.from_prices(line.unit_price_excl_tax, line.unit_price_incl_tax, currency),
+            total_net_amount=Amount(line.line_price_excl_tax, currency),
+            total_gross_amount=Amount(line.line_price_incl_tax, currency),
+            total_vat=Vat.from_prices(line.line_price_excl_tax, line.line_price_incl_tax, currency),
+            image_url=image_url
+        )
+
+    def to_xml(self, factory):
+        node = factory.create('ns0:item')
+        node._number = self.number
+        node.name = unicode(self.name)
+        node.code = unicode(self.code)
+        node.quantity = self.quantity.to_xml(factory)
+        node.description = unicode(self.description or '-')
+        node.image = unicode(self.image_url) if self.image_url else None
+        node.netAmount = self.net_amount.to_xml(factory)
+        node.grossAmount = self.gross_amount.to_xml(factory)
+        node.vat = self.vat.to_xml(factory)
+        node.totalNetAmount = self.total_net_amount.to_xml(factory)
+        node.totalGrossAmount = self.total_gross_amount.to_xml(factory)
+        node.totalVat = self.total_vat.to_xml(factory)
         return node
 
 

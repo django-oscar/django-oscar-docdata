@@ -69,6 +69,9 @@ class DocdataOrder(models.Model):
     def __unicode__(self):
         return self.order_key
 
+    def __repr__(self):
+        return "<DocdataOrder: {0}, {1} status={2}>".format(self.order_key, self.merchant_order_id, self.status)
+
     @property
     def latest_payment(self):
         try:
