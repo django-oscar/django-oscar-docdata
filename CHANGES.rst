@@ -11,6 +11,7 @@ Version 1.2.4
 * Added ``DOCDATA_HOUSE_NUMBER_FIELD`` setting.
 * Added ``oscar_docdata.gateway.to_iso639_part1()`` function, for sending language codes in the proper format.
 * Added pagination in docdata dashboard view.
+* Using suds-jurko_ fork for SOAP calls, which is a maintained fork of suds_.
 * Fix detecting expired orders via the status API.
 * Improve ``/api/docdata/update/`` output for curl usage.
 
@@ -46,3 +47,7 @@ Version 1.0
 -----------
 
 * Released stable version after months of internal usage.
+
+
+.. _suds: https://fedorahosted.org/suds/
+.. _suds-jurko: https://bitbucket.org/jurko/suds
