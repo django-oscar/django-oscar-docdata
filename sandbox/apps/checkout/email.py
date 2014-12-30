@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 Dispatcher = get_class('customer.utils', 'Dispatcher')
 CommunicationEventType = get_model('customer', 'CommunicationEventType')
-CommunicationEvent = get_model('customer', 'CommunicationEvent')
+CommunicationEvent = get_model('order', 'CommunicationEvent')
 
 
 
