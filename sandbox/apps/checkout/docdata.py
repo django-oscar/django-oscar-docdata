@@ -116,7 +116,7 @@ def _on_order_status_updated(order, **kwargs):
         _send_confirmation_message_once(request, order)
     elif order.status == DocdataOrder.STATUS_CHARGED_BACK:
         add_payment_event(oscar_order, "charged-back", order.total_charged_back, reference=order.order_key)
-    elif order.status == DocdataOrder.STATUS_CHARGED_BACK:
+    elif order.status == DocdataOrder.STATUS_REFUNDED:
         add_payment_event(oscar_order, "refunded", order.total_refunded, reference=order.order_key)
     elif order.status == DocdataOrder.STATUS_CANCELLED:
         add_payment_event(oscar_order, "cancelled", order.total_registered, reference=order.order_key)
