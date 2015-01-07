@@ -77,7 +77,10 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
             order_number=order_number,
             total=total,
             user=submission['user'],
-            billingaddress=submission['shipping_address'],  # NOTE: no billing address collected in steps.
+            # Extra parameters to add the "Invoice" element in Docdata:
+            billing_address=submission['shipping_address'],  # NOTE: no billing address collected in steps.
+            shipping_address=submission['shipping_address'],
+            basket=submission['basket'],
             description=''
         )
 

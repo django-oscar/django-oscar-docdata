@@ -1,5 +1,4 @@
 import logging
-import re
 from django.db.models import get_model
 from django.dispatch import receiver
 from django.http import HttpRequest
@@ -17,8 +16,6 @@ PaymentEventType = get_model('order', 'PaymentEventType')
 PaymentEvent = get_model('order', 'PaymentEvent')
 PaymentEventQuantity = get_model('order', 'PaymentEventQuantity')
 
-RE_NUMBER = re.compile('^[0-9]+$')
-
 
 class CustomDocdataFacade(Facade):
     """
@@ -26,17 +23,20 @@ class CustomDocdataFacade(Facade):
     """
     def get_create_payment_args(self, *args, **kwargs):
         api_args = super(CustomDocdataFacade, self).get_create_payment_args(*args, **kwargs)
-        billingaddress = kwargs['billingaddress']
-
-        # Pass house number
-        house_number = "1"  # This seriously needs to be a number for PayPal to work in Docdata!
-        if RE_NUMBER.match(billingaddress.line2):
-            house_number = billingaddress.line2
 
         # Make sure the address can be accepted by Docdata.
-        # Streets have a limit of 32 characters, so truncate it.
-        api_args['bill_to'].address.street = billingaddress.line1[:32]
-        api_args['bill_to'].address.house_number = house_number
+        # Streets have a limit of 32 characters (already truncated)
+        if not api_args['bill_to'].address.house_number:
+            # This seriously needs to be a number for PayPal to work in Docdata!
+            api_args['bill_to'].address.house_number = "1"
+
+        # HACK! Pass customer "State" field for PayPal.
+        # Hack the invoice so we can provide another STATE field to make PayPal work.
+        # Though this should be the shipping address,
+        # using the billing address here because Docdata reads that field.
+        # Seriously. This is messed up.
+        api_args['invoice'].ship_to = api_args['bill_to']
+
         return api_args
 
 
