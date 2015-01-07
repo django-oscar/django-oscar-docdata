@@ -135,10 +135,10 @@ class Facade(Interface):
             bill_to = Destination.from_address(billing_address)
             # Auto fill in these fields if they are not provided.
             # These fields are not required in Oscar, but Docdata requires them.
-            if not bill_to.name.first_name:
-                bill_to.name.first_name = user.first_name
-            if not bill_to.name.last_name:
-                bill_to.name.last_name = user.last_name
+            if not bill_to.name.first:
+                bill_to.name.first = user.first_name
+            if not bill_to.name.last:
+                bill_to.name.last = user.last_name
 
             args['bill_to'] = bill_to
 
@@ -148,10 +148,10 @@ class Facade(Interface):
             invoice = Invoice.from_basket(basket, total, shipping_address)
             # Auto fill in these fields if they are not provided.
             # These fields are not required in Oscar, but Docdata requires them.
-            if not invoice.ship_to.name.first_name:
-                invoice.ship_to.name.first_name = user.first_name
-            if not invoice.ship_to.name.last_name:
-                invoice.ship_to.name.last_name = user.last_name
+            if not invoice.ship_to.name.first:
+                invoice.ship_to.name.first = user.first_name
+            if not invoice.ship_to.name.last:
+                invoice.ship_to.name.last = user.last_name
 
             args['invoice'] = invoice
 
