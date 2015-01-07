@@ -937,7 +937,7 @@ class Item(object):
         OSCAR_STATIC_BASE_URL = getattr(settings, 'OSCAR_STATIC_BASE_URL', None)
         image_url = None
         if OSCAR_STATIC_BASE_URL:
-            primary_image = product.primary_image
+            primary_image = product.primary_image()  # Either returns a ProductImage or dict for the template.
             if primary_image and not isinstance(primary_image, dict):
                 image_url = urlparse.urljoin(OSCAR_STATIC_BASE_URL, primary_image.original.url)
 
