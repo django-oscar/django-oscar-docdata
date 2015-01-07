@@ -6,8 +6,6 @@ All Oscar-related functionality should be in the facade.
 """
 import logging
 from decimal import Decimal as D
-import urlparse
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.text import Truncator
 import suds.client
@@ -932,15 +930,6 @@ class Item(object):
             raise TypeError("Invalid argument type: {0}".format(line.__class__.__name__))
 
         product = line.product
-
-        # See if we can provide an image
-        OSCAR_STATIC_BASE_URL = getattr(settings, 'OSCAR_STATIC_BASE_URL', None)
-        image_url = None
-        if OSCAR_STATIC_BASE_URL:
-            primary_image = product.primary_image()  # Either returns a ProductImage or dict for the template.
-            if primary_image and not isinstance(primary_image, dict):
-                image_url = urlparse.urljoin(OSCAR_STATIC_BASE_URL, primary_image.original.url)
-
         return cls(
             number=line.id,
             name=product.get_title(),
@@ -953,7 +942,7 @@ class Item(object):
             total_net_amount=Amount(line.line_price_excl_tax, currency),
             total_gross_amount=Amount(line.line_price_incl_tax, currency),
             total_vat=Vat.from_prices(line.line_price_excl_tax, line.line_price_incl_tax, currency),
-            image_url=image_url
+            image_url=None,   # Can't use product.primary_image().original.url because Docdata doesn't generate thumbnails.
         )
 
     def to_xml(self, factory):
