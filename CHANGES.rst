@@ -6,6 +6,7 @@ Version 1.2.4
 
 * Added support for multiple merchant accounts in a single database (multi-tenant support).
 * Added manager methods to ``DocdataOrder.objects``: ``current_merchant()``, ``for_reference()``, ``for_order()``.
+* Added support for the parameters ``billing_address``, ``shipping_address``, ``basket`` in the `get_create_payment_args()` code.
 * Added support for the ``Invoice`` element. This is needed to pass state for PayPal.
 * Added ``DOCDATA_FACADE_CLASS`` setting, so all views use a custom Facade
 * Added ``DOCDATA_HOUSE_NUMBER_FIELD`` setting.

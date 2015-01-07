@@ -10,7 +10,6 @@ import urlparse
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.text import Truncator
-from oscar.core.loading import get_model
 import suds.client
 import suds.plugin
 from django.core.urlresolvers import reverse
@@ -746,6 +745,9 @@ class Vat(Amount):
 
     @classmethod
     def from_prices(cls, excl_tax, incl_tax, currency):
+        """
+        Calculate VAT by subtracting prices.
+        """
         if excl_tax > incl_tax:
             raise ValueError("Vat.from_prices() requires excl_tax <= incl_tax")
 
@@ -769,6 +771,10 @@ class TotalVatAmount(Vat):
     """
     @classmethod
     def from_vat(cls, vat):
+        """
+        Create this element by copying the VAT object values.
+        :type vat: Vat
+        """
         return cls(
             value=vat.value,
             currency=vat.currency,
@@ -833,6 +839,29 @@ class Invoice(object):
         self.ship_to = ship_to
         self.additional_description = additional_description
 
+    @classmethod
+    def from_basket(cls, basket, total, shipping_address):
+        """
+        :param basket: The basket to submit
+        :type basket: :class:`~oscar.apps.basket.abstract_models.AbstractBasket`
+        :param shipping_address: The shipping address for the invoice.
+                                Note: the Docdata API v1.2 reads this address he "State" field to submit to PayPal.
+                                Hence, HACK this by passing the billing address instead of the shipping address.
+        :type shipping_address: :class:`~oscar.apps.address.abstract_models.AbstractAddress`
+        """
+        return cls(
+            total_net_amount=Amount(basket.total_excl_tax, total.currency),
+            total_vat_amount=Vat.from_prices(basket.total_excl_tax, basket.total_incl_tax, total.currency),
+            additional_description="",
+            items=[
+                Item.from_line(line) for line in basket.lines.all()
+                # TODO: Add shipping costs line!
+            ],
+            # Note: Docdata reads this field fort he "State" field to submit to PayPal.
+            # Hence, hack this by passing the shipping_address instead of the billing address.
+            ship_to=Destination.from_address(shipping_address)
+        )
+
     def to_xml(self, factory):
         node = factory.create('ns0:invoice')
         node.totalNetAmount = self.total_net_amount.to_xml(factory)
@@ -890,8 +919,11 @@ class Item(object):
 
     @classmethod
     def from_line(cls, line):
-        BasketLine = get_model('basket', 'Line')
-        OrderLine = get_model('order', 'Line')
+        """
+        :type line: oscar.apps.basket.abstract_models.AbstractLine | oscar.apps.order.abstract_models.AbstractLine
+        """
+        from oscar.apps.basket.abstract_models import AbstractLine as BasketLine
+        from oscar.apps.order.abstract_models import AbstractLine as OrderLine
         if isinstance(line, BasketLine):
             currency = line.price_currency
         elif isinstance(line, OrderLine):
