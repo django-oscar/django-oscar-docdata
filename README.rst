@@ -73,7 +73,7 @@ As recommendation, temporary log all events from this package as well::
         'loggers': {
             # ...
 
-            'suds': {
+            'suds.transport': {
                 'handlers': ['console'],
                 'level': 'DEBUG',
                 'propagate': True,
