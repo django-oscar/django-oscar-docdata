@@ -46,7 +46,7 @@ OSCAR_ORDER_STATUS_CASCADE = getattr(settings, 'OSCAR_ORDER_STATUS_CASCADE', {})
 # Allow 100 cents difference between the total received payment
 # and actual registered money to handle currency rate conversions.
 DOCDATA_PAYMENT_SUCCESS_MARGIN = getattr(settings, 'DOCDATA_PAYMENT_SUCCESS_MARGIN', {
-    'USD': 100,
+    'USD': 160,
     'EUR': 100,
 })
 
