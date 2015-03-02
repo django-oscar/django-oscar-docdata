@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 1.2.5
+-------------
+
+* Cache Docdata WSDL information, avoid fetching it each time ``Facade``/``Interface``/``DocdataClient`` object is constructed.
+
+
 Version 1.2.4
 -------------
 

@@ -60,6 +60,7 @@ __all__ = (
 #
 # >>> client.factory.create('ns0:name')
 
+CACHED_CLIENT = {}
 
 def get_suds_client(testing_mode=False):
     """
@@ -71,7 +72,12 @@ def get_suds_client(testing_mode=False):
         url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
     # Online preview: https://secure.docdatapayments.com/ps/orderapi-1_2.wsdl
 
-    # TODO: CACHE THIS object, avoid having to request the WSDL at every instance.
+    # See if the client is already fetched, if so, reuse that.
+    try:
+        return CACHED_CLIENT[url]
+    except KeyError:
+        pass
+
     try:
         client = suds.client.Client(url, plugins=[DocdataAPIVersionPlugin()])
         # HACK: Fixes serialization of raw Element objects.
@@ -79,6 +85,9 @@ def get_suds_client(testing_mode=False):
         # The debug output of 'suds.client' won't show this,
         # but the debug output of 'suds' will.
         client.options.prettyxml = True
+        
+        # Cache and return
+        CACHED_CLIENT[url] = client
         return client
     except URLError as e:
         logger.error('{0} {1}'.format("Could not initialize SUDS SOAP client to connect to Docdata", str(e)))
