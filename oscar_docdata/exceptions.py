@@ -4,6 +4,11 @@ class OrderKeyMissing(ValueError):
     Missing an order key!
     """
 
+class InvalidMerchant(ValueError):
+    """
+    Provided order belongs to a different merchant!
+    """
+
 class DocdataException(Exception):
     """
     Base class for all exceptions from Docdata

@@ -8,6 +8,15 @@ class DocdataOrderQuerySet(QuerySet):
     """
     Chainable methods
     """
+    def active_merchants(self):
+        """
+        Only select the docdata accounts of ``DOCDATA_MERCHANT_PASSWORDS``
+        """
+        if len(appsettings.DOCDATA_MERCHANT_PASSWORDS) == 1:
+            # Optimize SQL a little bit
+            return self.filter(merchant_name=next(appsettings.DOCDATA_MERCHANT_PASSWORDS.keys()))
+        else:
+            return self.filter(merchant_name__in=appsettings.DOCDATA_MERCHANT_PASSWORDS.keys())
 
     def current_merchant(self):
         """
@@ -42,11 +51,17 @@ class DocdataOrderManager(models.Manager):
         def get_query_set(self):
             return self.queryset_class(self.model, using=self._db)
 
+    def active_merchants(self):
+        """
+        Only select the orders
+        """
+        # using .all() so Django selects the proper get_queryset() method.
+        self.all().active_merchants()
+
     def current_merchant(self):
         """
         Only select the current docdata account.
         """
-        # using .all() so Django selects the proper get_queryset() method.
         return self.all().current_merchant()
 
     def for_reference(self, docdata_ref):

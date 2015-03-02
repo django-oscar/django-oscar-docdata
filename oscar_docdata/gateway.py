@@ -85,7 +85,7 @@ def get_suds_client(testing_mode=False):
         # The debug output of 'suds.client' won't show this,
         # but the debug output of 'suds' will.
         client.options.prettyxml = True
-        
+
         # Cache and return
         CACHED_CLIENT[url] = client
         return client
@@ -191,9 +191,12 @@ class DocdataClient(object):
     PAYMENT_METHOD_ELV = 'ELV'
 
 
-    def __init__(self, testing_mode=None):
+    def __init__(self, testing_mode=None, merchant_name=None, merchant_password=None):
         """
         Initialize the client.
+
+        Optionally, custom merchant credentials can be given.
+        By default, the settings ``DOCDATA_MERCHANT_NAME`` and ``DOCDATA_MERCHANT_PASSWORD`` will be used.
         """
         if testing_mode is None:
             testing_mode = appsettings.DOCDATA_TESTING
@@ -201,20 +204,60 @@ class DocdataClient(object):
         self.testing_mode = testing_mode
         self.client = get_suds_client(testing_mode)
 
-        if not appsettings.DOCDATA_MERCHANT_NAME:
-            raise ImproperlyConfigured("Missing DOCDATA_MERCHANT_NAME setting!")
-        if not appsettings.DOCDATA_MERCHANT_PASSWORD:
-            raise ImproperlyConfigured("Missing DOCDATA_MERCHANT_PASSWORD setting!")
+        # Create the merchant node to pass the username/password to.
+        if merchant_name is not None:
+            # Received custom object values
+            self.set_merchant(merchant_name, merchant_password)
+        else:
+            # Using default configuration values
+            if not appsettings.DOCDATA_MERCHANT_NAME:
+                raise ImproperlyConfigured("Missing DOCDATA_MERCHANT_NAME setting!")
+            if not appsettings.DOCDATA_MERCHANT_PASSWORD:
+                raise ImproperlyConfigured("Missing DOCDATA_MERCHANT_PASSWORD setting!")
 
-        # Create the merchant node which is passed to every request.
-        # The _ notation is used to assign attributes to the XML node, instead of child elements.
-        self.merchant = self.client.factory.create('ns0:merchant')
-        self.merchant._name = appsettings.DOCDATA_MERCHANT_NAME
-        self.merchant._password = appsettings.DOCDATA_MERCHANT_PASSWORD
+            self.set_merchant(appsettings.DOCDATA_MERCHANT_NAME, appsettings.DOCDATA_MERCHANT_PASSWORD)
 
         # Create the integration info node which is passed to every request.
         self.integration_info = TechnicalIntegrationInfo()
 
+    @classmethod
+    def for_merchant(cls, merchant_name, testing_mode=None):
+        """
+        Generate the client with the proper credentials that is needed to update the order.
+        This method is useful when there are multiple sub accounts in use.
+        The proper account credentials are automatically selected
+        from the ``DOCDATA_MERCHANT_PASSWORDS`` setting.
+        :rtype: DocdataClient
+        """
+        try:
+            password = appsettings.DOCDATA_MERCHANT_PASSWORDS[merchant_name]
+        except KeyError:
+            raise ImproperlyConfigured("No password provided in DOCDATA_MERCHANT_PASSWORDS for merchant '{0}'".format(merchant_name))
+
+        return cls(
+            testing_mode=testing_mode,
+            merchant_name=merchant_name,
+            merchant_password=password
+        )
+
+    def set_merchant(self, name, password):
+        """
+        Set the merchant name and password to connect to Docdata.
+        This defines the account used to connect.
+        """
+        # Create the merchant node which is passed to every request.
+        # The _ notation is used to assign attributes to the XML node, instead of child elements.
+        self.merchant = self.client.factory.create('ns0:merchant')
+        self.merchant._name = name
+        self.merchant._password = password
+
+    @property
+    def merchant_name(self):
+        """
+        Access the merchant name used to connect
+        :rtype: str
+        """
+        return self.merchant._name
 
     def create(self,
             order_id,

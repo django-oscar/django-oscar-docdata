@@ -11,6 +11,7 @@ from django.db import IntegrityError, transaction
 from django.utils.timezone import now
 from django.utils.translation import get_language
 from oscar_docdata import appsettings
+from oscar_docdata.exceptions import InvalidMerchant
 from oscar_docdata.gateway import DocdataClient
 from oscar_docdata.models import DocdataOrder, DocdataPayment
 from oscar_docdata.signals import order_status_changed, payment_added, payment_updated
@@ -53,7 +54,7 @@ class Interface(object):
         self.client = DocdataClient(testing_mode)
 
 
-    def create_payment(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, **kwargs):
+    def create_payment(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, merchant_name=None, **kwargs):
         """
         Start a new payment session / container.
 
@@ -70,6 +71,11 @@ class Interface(object):
         if not language:
             language = get_language()
 
+        if merchant_name is not None:
+            client = DocdataClient.for_merchant(merchant_name=merchant_name, testing_mode=self.testing_mode)
+        else:
+            client = self.client
+
         # May raise an DocdataCreateError exception
         call_args = self.get_create_payment_args(
             # Pass all as kwargs, make it easier for subclasses to override using *args, **kwargs and fetch all by name.
@@ -81,11 +87,12 @@ class Interface(object):
             profile=profile,
             **kwargs
         )
-        createsuccess = self.client.create(**call_args)
+        createsuccess = client.create(**call_args)
 
         # Track order_key for local logging
         destination = call_args.get('bill_to')
         self._store_create_success(
+            merchant_name=str(client.merchant_name),
             order_number=order_number,
             order_key=createsuccess.order_key,
             amount=call_args['total_gross_amount'],
@@ -105,12 +112,12 @@ class Interface(object):
         raise NotImplementedError("Missing get_create_payment_args() implementation!")
 
 
-    def _store_create_success(self, order_number, order_key, amount, language, country_code):
+    def _store_create_success(self, merchant_name, order_number, order_key, amount, language, country_code):
         """
         Store the order_key for local status checking.
         """
         DocdataOrder.objects.create(
-            merchant_name=appsettings.DOCDATA_MERCHANT_NAME,
+            merchant_name=merchant_name,
             merchant_order_id=order_number,
             order_key=order_key,
             total_gross_amount=amount.value,
@@ -132,11 +139,12 @@ class Interface(object):
 
     def start_payment(self, order_key, payment, payment_method=None):
 
-        order = DocdataOrder.objects.select_for_update().current_merchant().get(order_key=order_key)
+        order = DocdataOrder.objects.select_for_update().active_merchants().get(order_key=order_key)
         amount = None
 
         # This can raise an exception.
-        startsuccess = self.client.start(order_key, payment, payment_method=payment_method, amount=amount)
+        client = DocdataClient.for_merchant(order.merchant_name, testing_mode=self.testing_mode)
+        startsuccess = client.start(order_key, payment, payment_method=payment_method, amount=amount)
 
         self._set_status(order, DocdataOrder.STATUS_IN_PROGRESS)
         order.save()
@@ -151,13 +159,13 @@ class Interface(object):
     def cancel_order(self, order):
         """
         Cancel the order.
+        :type order: DocdataOrder
         """
-        client = DocdataClient()
+        client = DocdataClient.for_merchant(order.merchant_name, testing_mode=self.testing_mode)
         client.cancel(order.order_key)  # Can bail out with an exception (already logged)
 
         # Don't wait for server to send event back, get most recent state now.
         # Also make sure the order will be marked as cancelled.
-        client = DocdataClient()
         statusreply = client.status(order.order_key)  # Can bail out with an exception (already logged)
         self._store_report(order, statusreply.report, indented_status=DocdataOrder.STATUS_CANCELLED)
 
@@ -167,7 +175,12 @@ class Interface(object):
         :type order: DocdataOrder
         """
         # Fetch the latest status
-        client = DocdataClient()
+        client = DocdataClient.for_merchant(order.merchant_name, testing_mode=self.testing_mode)
+        if client.merchant_name != order.merchant_name:
+            raise InvalidMerchant("Order {0} belongs to a different merchant: {1} (client uses: {2})".format(
+                order.merchant_order_id, order.merchant_name, client.merchant_name
+            ))
+
         statusreply = client.status(order.order_key)  # Can bail out with an exception (already logged)
 
         # Store the new status

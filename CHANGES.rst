@@ -1,11 +1,14 @@
 Changelog
 =========
 
+Version structure: the "1.2" reffers to the Docdata API version.
+
 Version 1.2.5
 -------------
 
 * Cache Docdata WSDL information, avoid fetching it each time ``Facade``/``Interface``/``DocdataClient`` object is constructed.
-
+* Added ``DocdataClient.set_merchant(name, password)`` method.
+* Added subaccount support; fill ``DOCDATA_MERCHANT_PASSWORDS`` to support updating/cancelling orders created at other subaccounts.
 
 Version 1.2.4
 -------------

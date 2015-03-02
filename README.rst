@@ -86,6 +86,21 @@ As recommendation, temporary log all events from this package as well::
         },
     }
 
+Extra: subaccount support
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Docdata allows creating multiple accounts under the same contract.  This is called a "sub account".
+Each account has it's own connections to VISA/MasterCard/PayPal/etc.
+This module supports such situation.
+
+When you fill in the ``DOCDATA_MERCHANT_PASSWORDS`` dictionary,
+orders submitted to any of these merchants can be displayed in the admin,
+and they can receive status updates. Each key/value is a merchant-name/password pair.
+
+When no subaccounts are configured, only the orders submitted by the current merchant can be displayed in the admin.
+This supports a multi-tennant database structure, while each tennant only sees their own orders.
+
+
 
 Integration into your project
 -----------------------------

@@ -26,7 +26,7 @@ class Command(NoArgsCommand):
             # Avoid logging SOAP requests
             logging.getLogger('suds.client').setLevel('INFO')
 
-        qs = DocdataOrder.objects.current_merchant() \
+        qs = DocdataOrder.objects.active_merchants() \
             .filter(status__in=expire_status_choices) \
             .filter(created__lt=(now() - timedelta(days=21)))  # 3 weeks, based on manual testing.
 

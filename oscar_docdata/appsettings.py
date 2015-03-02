@@ -8,6 +8,11 @@ from django.core.urlresolvers import reverse_lazy
 
 DOCDATA_MERCHANT_NAME = getattr(settings, 'DOCDATA_MERCHANT_NAME')
 DOCDATA_MERCHANT_PASSWORD = getattr(settings, 'DOCDATA_MERCHANT_PASSWORD')
+DOCDATA_MERCHANT_PASSWORDS = getattr(settings, 'DOCDATA_MERCHANT_PASSWORDS', {})
+
+# Add the common case
+if DOCDATA_MERCHANT_NAME not in DOCDATA_MERCHANT_PASSWORDS:
+    DOCDATA_MERCHANT_PASSWORDS[DOCDATA_MERCHANT_NAME] = DOCDATA_MERCHANT_PASSWORD
 
 # Whether to use the testing mode, or live mode.
 DOCDATA_TESTING = getattr(settings, 'DOCDATA_TESTING', True)
