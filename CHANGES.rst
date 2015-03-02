@@ -8,7 +8,12 @@ Version 1.2.5
 
 * Cache Docdata WSDL information, avoid fetching it each time ``Facade``/``Interface``/``DocdataClient`` object is constructed.
 * Added ``DocdataClient.set_merchant(name, password)`` method.
-* Added subaccount support; fill ``DOCDATA_MERCHANT_PASSWORDS`` to support updating/cancelling orders created at other subaccounts.
+* Added subaccount support
+
+ * Added ``merchant_name`` parameter to ``create_payment()``.
+ * Fill ``DOCDATA_MERCHANT_PASSWORDS`` to support updating/cancelling orders created at other subaccounts.
+ * Minor **backwards incompatibility**: ``start_payment()`` "order_key" parameter is renamed to "order".
+   This only affects passing kwargs. Passing the order key works but is deprecated, pass a ``DocdataOrder`` instead.
 
 Version 1.2.4
 -------------

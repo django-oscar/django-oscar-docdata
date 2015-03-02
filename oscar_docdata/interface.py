@@ -137,14 +137,19 @@ class Interface(object):
         return self.client.get_payment_menu_url(request, order_key, return_url=return_url, client_language=client_language, **extra_url_args)
 
 
-    def start_payment(self, order_key, payment, payment_method=None):
+    def start_payment(self, order, payment, payment_method=None):
+        """
+        :type order: DocdataOrder
+        """
+        # Backwards compatibility fix, old parameter was named "order_key".
+        if isinstance(order, basestring):
+            order = DocdataOrder.objects.select_for_update().active_merchants().get(order_key=order)
 
-        order = DocdataOrder.objects.select_for_update().active_merchants().get(order_key=order_key)
         amount = None
 
         # This can raise an exception.
         client = DocdataClient.for_merchant(order.merchant_name, testing_mode=self.testing_mode)
-        startsuccess = client.start(order_key, payment, payment_method=payment_method, amount=amount)
+        startsuccess = client.start(order.order_key, payment, payment_method=payment_method, amount=amount)
 
         self._set_status(order, DocdataOrder.STATUS_IN_PROGRESS)
         order.save()
