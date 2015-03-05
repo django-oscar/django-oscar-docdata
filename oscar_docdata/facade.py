@@ -37,6 +37,7 @@ def get_facade(*args, **kwargs):
     """
     Get the proper Facade object instance.
     This reads the ``DOCDATA_FACADE_CLASS`` setting.
+    :rtype: Facade
     """
     FacadeClass = get_facade_class()
     return FacadeClass(*args, **kwargs)
