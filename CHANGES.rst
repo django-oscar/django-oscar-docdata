@@ -17,6 +17,7 @@ Version 1.2.5
 
 * Fix detecting "paid" status when the customer starts multiple payment attempts, but then completes the first.
   (the root issue here is the lack of a missing global "cluster/order status" field in the API - so we have to make guesses).
+* Fix ``DocdataOrder.last_payment`` property.
 
 Version 1.2.4
 -------------

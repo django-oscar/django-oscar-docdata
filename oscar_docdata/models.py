@@ -75,7 +75,7 @@ class DocdataOrder(models.Model):
     @property
     def latest_payment(self):
         try:
-            return self.payments.order_by('-merchant_order_id').all()[0]
+            return self.payments.order_by('-payment_id').all()[0]
         except IndexError:
             return None
 
