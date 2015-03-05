@@ -208,8 +208,8 @@ class Interface(object):
 
         if hasattr(report, 'payment'):
             # Store all report lines, make an analytics of the new status
-            latest_payment = self._store_report_lines(order, report)
-            new_status = self._get_new_status(order, report, latest_payment)
+            payments = self._store_report_lines(order, report)
+            new_status = self._get_new_status(order, report, payments)
         else:
             # There are no payments. It's really annoying to see that the Docdata status API
             # doesn't actually return a global "payment cluster" status code.
@@ -275,7 +275,8 @@ class Interface(object):
         Store the status report lines from the StatusReply.
         Each line represents a payment event, which is stored in a DocdataPayment object.
         """
-        latest_payment = None
+        report_objects = []
+        ddpayment_objects = []
 
         for payment_report in report.payment:
             # payment_report is a ns0:payment object, which contains:
@@ -413,28 +414,42 @@ class Interface(object):
                 else:
                     payment_updated.send(sender=DocdataPayment, order=order, payment=ddpayment)
 
-            # Webservice doesn't return payments in the correct order (or reversed).
-            # So far, the payments can only be sorted by ID.
-            if latest_payment is None or latest_payment.id < payment_report.id:
-                latest_payment = payment_report
+            ddpayment_objects.append(ddpayment)
+            setattr(ddpayment, '_source', payment_report)
+
+        # Webservice doesn't return payments in the correct order (or reversed).
+        # So far, the payments can only be sorted by ID.
+        ddpayment_objects.sort(key=lambda ddpayment: ddpayment.payment_id)
+        return ddpayment_objects
 
 
-        # Use the latest payment to get a new status for the order.
-        return latest_payment
-
-
-    def _get_new_status(self, order, report, latest_payment_report):
+    def _get_new_status(self, order, report, payments):
         """
         Perform any checks related to the status change.
         This returns the "status" value of the last payment line.
         This line either indicates the payment is authorized, cancelled, refunded, etc..
+
+        :type order: DocdataOrder
+        :type payments: list of DocdataPayment
         """
-        status = str(latest_payment_report.authorization.status)
+        if any(p.authorization.status == DocdataClient.STATUS_AUTHORIZED for p in report.payment):
+            # If there is a payment which is authorized, take that.
+            # Ignore other payments that may have been tried too, but failed.
+            #
+            # This handles the strange situation we've seen:
+            # - Customer initiated both a PayPal and VISA payment
+            # - Then completes the PayPal payment.
+            # - Hence the last payment is NEW, but the first is AUTHORIZED.
+            status = DocdataClient.STATUS_AUTHORIZED
+        else:
+            latest_payment_report = payments[-1]._source
+            status = str(latest_payment_report.authorization.status)
+
         totals = report.approximateTotals
 
         # Some status mapping overrides.
         # Using status of last payment report line.
-        new_status = self.status_mapping.get(str(latest_payment_report.authorization.status), DocdataOrder.STATUS_UNKNOWN)
+        new_status = self.status_mapping.get(status, DocdataOrder.STATUS_UNKNOWN)
 
         # Stay in cancelled/expired, don't switch back to NEW
         # Even though the payment cluster is set to 'closed_expired',
