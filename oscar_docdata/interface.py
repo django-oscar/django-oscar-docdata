@@ -273,7 +273,7 @@ class Interface(object):
     def _store_report_lines(self, order, report):
         """
         Store the status report lines from the StatusReply.
-        Each line represents a payment event.
+        Each line represents a payment event, which is stored in a DocdataPayment object.
         """
         latest_payment = None
 
@@ -460,12 +460,16 @@ class Interface(object):
             margin = 0
             if order.currency == totals._exchangedTo:  # Reads XML attribute.
                 if any(p.authorization.amount._currency != order.currency for p in report.payment):
+                    # Order has a currency conversion, apply the margin
                     margin = appsettings.DOCDATA_PAYMENT_SUCCESS_MARGIN.get(totals._exchangedTo, 0)
-                    if margin >= totals.totalRegistered:  # avoid making everything as paid!
+
+                    # But if it exceeds the totalRegistered (e.g. it's 0), avoid making everything as paid!
+                    if margin >= totals.totalRegistered:
                         margin = 0
 
 
             if totals.totalCaptured >= (totals.totalRegistered - margin):
+                # There is income!
                 payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
 
                 if payment_sum >= (totals.totalRegistered - margin):
