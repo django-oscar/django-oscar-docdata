@@ -56,7 +56,7 @@ class DocdataOrderManager(models.Manager):
         Only select the orders
         """
         # using .all() so Django selects the proper get_queryset() method.
-        self.all().active_merchants()
+        return self.all().active_merchants()
 
     def current_merchant(self):
         """

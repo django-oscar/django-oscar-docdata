@@ -64,7 +64,7 @@ class Facade(Interface):
     Most methods are just called directly on the Interface.
     """
 
-    def create_payment(self, order_number, total, user, language=None, description=None, profile=None, **kwargs):
+    def create_payment(self, order_number, total, user, language=None, description=None, profile=None, merchant_name=None, **kwargs):
         """
         Start a new payment session / container.
 
@@ -93,7 +93,7 @@ class Facade(Interface):
             profile = appsettings.DOCDATA_PROFILE
 
         try:
-            order_key = super(Facade, self).create_payment(order_number, total, user, language=language, description=description, profile=profile, **kwargs)
+            order_key = super(Facade, self).create_payment(order_number, total, user, language=language, description=description, profile=profile, merchant_name=merchant_name, **kwargs)
         except DocdataCreateError as e:
             raise PaymentError(e.value, e)
 
