@@ -14,7 +14,7 @@ class DocdataOrderQuerySet(QuerySet):
         """
         if len(appsettings.DOCDATA_MERCHANT_PASSWORDS) == 1:
             # Optimize SQL a little bit
-            return self.filter(merchant_name=next(appsettings.DOCDATA_MERCHANT_PASSWORDS.keys()))
+            return self.filter(merchant_name=next(appsettings.DOCDATA_MERCHANT_PASSWORDS.iterkeys()))
         else:
             return self.filter(merchant_name__in=appsettings.DOCDATA_MERCHANT_PASSWORDS.keys())
 
