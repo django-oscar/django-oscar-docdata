@@ -17,6 +17,7 @@ Version 1.2.5
 
 * Added ``update_docdata_order`` management command.
 * Using ``-v2`` in managements commands displays the SOAP XML conversation (via logging).
+* Increased ``DOCDATA_PAYMENT_SUCCESS_MARGIN`` for USD to $1.50
 * Fix detecting "paid" status when the customer starts multiple payment attempts, but then completes the first.
   (the root issue here is the lack of a missing global "cluster/order status" field in the API - so we have to make guesses).
 * Fix ``DocdataOrder.last_payment`` property.
