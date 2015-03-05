@@ -22,9 +22,9 @@ class Command(NoArgsCommand):
         is_dry_run = options.get('dry-run', False)
         expire_status_choices = (DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS)
 
-        if options['verbosity'] < "2":
-            # Avoid logging SOAP requests
-            logging.getLogger('suds.client').setLevel('INFO')
+        # At -v2 SOAP requests are outputted.
+        verbosity = int(options['verbosity'])
+        logging.getLogger('suds.transport').setLevel('INFO' if verbosity < 2 else 'DEBUG')
 
         qs = DocdataOrder.objects.active_merchants() \
             .filter(status__in=expire_status_choices) \
