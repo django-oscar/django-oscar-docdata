@@ -512,7 +512,11 @@ class DocdataClient(object):
         PayPal, Rabo SMS-betalen, SofortUberweisung, eBanking, KBC Betaalknop and iDEAL.
         When the issuer_id is added to the redirect string, this works for iDEAL as well.
 
-        :param extra_args: Additional URL arguments, e.g. default_pm=IDEAL, ideal_issuer_id=0021, default_act='true'
+        :param extra_args: Additional URL arguments, e.g:
+                           default_pm=IDEAL
+                           ideal_issuer_id=0021
+                           default_act='true'
+                           merchant_name='account'
         """
         if not return_url:
             return_url = reverse('return_url', current_app='oscar_docdata')
@@ -530,7 +534,7 @@ class DocdataClient(object):
         args = {
             'command': 'show_payment_cluster',
             'payment_cluster_key': order_key,
-            'merchant_name': appsettings.DOCDATA_MERCHANT_NAME,
+            'merchant_name': self.merchant_name,
             'return_url_success': url_format.format(return_url, callback='SUCCESS', order_id=order_key),
             'return_url_pending': url_format.format(return_url, callback='PENDING', order_id=order_key),
             'return_url_canceled': url_format.format(return_url, callback='CANCELLED', order_id=order_key),
