@@ -805,7 +805,12 @@ class Vat(Amount):
         if excl_tax > incl_tax:
             raise ValueError("Vat.from_prices() requires excl_tax <= incl_tax")
 
-        rate = int((D(incl_tax) / D(excl_tax) - 1) * 100)
+        if excl_tax == incl_tax:
+            # Though very impractical, be correct on the output instead of getting a division by zero error.
+            rate = 0
+        else:
+            rate = int((D(incl_tax) / D(excl_tax) - 1) * 100)
+
         return cls(
             value=incl_tax - excl_tax,
             currency=currency,
