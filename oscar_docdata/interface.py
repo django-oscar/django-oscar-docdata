@@ -7,6 +7,7 @@ The Oscar specific code is in the facade.
 from datetime import timedelta
 import logging
 from decimal import Decimal as D
+from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError, transaction
 from django.utils.timezone import now
 from django.utils.translation import get_language
@@ -43,7 +44,7 @@ class Interface(object):
     }
 
 
-    def __init__(self, testing_mode=None):
+    def __init__(self, testing_mode=None, merchant_name=None, merchant_password=None):
         """
         Initialize the interface.
         If the testing_mode is not set, it defaults to the ``DOCDATA_TESTING`` setting.
@@ -51,7 +52,29 @@ class Interface(object):
         if testing_mode is None:
             testing_mode = appsettings.DOCDATA_TESTING
         self.testing_mode = testing_mode
-        self.client = DocdataClient(testing_mode)
+        self.client = DocdataClient(testing_mode, merchant_name=merchant_name, merchant_password=merchant_password)
+
+
+
+    @classmethod
+    def for_merchant(cls, merchant_name, testing_mode=None):
+        """
+        Generate the client with the proper credentials.
+        This method is useful when there are multiple sub accounts in use.
+        The proper account credentials are automatically selected
+        from the ``DOCDATA_MERCHANT_PASSWORDS`` setting.
+        :rtype: DocdataClient
+        """
+        try:
+            password = appsettings.DOCDATA_MERCHANT_PASSWORDS[merchant_name]
+        except KeyError:
+            raise ImproperlyConfigured("No password provided in DOCDATA_MERCHANT_PASSWORDS for merchant '{0}'".format(merchant_name))
+
+        return cls(
+            testing_mode=testing_mode,
+            merchant_name=merchant_name,
+            merchant_password=password
+        )
 
 
     def create_payment(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, merchant_name=None, **kwargs):
