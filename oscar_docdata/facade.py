@@ -3,6 +3,7 @@ Bridging module between Oscar and the gateway module (which is Oscar agnostic)
 """
 import logging
 from django.utils.translation import get_language
+from oscar.apps.order.exceptions import InvalidOrderStatus
 from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
 from oscar_docdata.compat import get_model
@@ -165,7 +166,6 @@ class Facade(Interface):
         """
         _lazy_get_models()
         project_status = appsettings.DOCDATA_ORDER_STATUS_MAPPING.get(new_status, new_status)
-        cascade = appsettings.OSCAR_ORDER_STATUS_CASCADE.get(project_status, None)
 
         # Update the order in Oscar
         # Using select_for_update() to have a lock on the order first.
@@ -175,11 +175,14 @@ class Facade(Interface):
             logging.info("Order {0} status is already {1}, skipping signal.".format(order.number, order.status))
             return
 
-        # Not using Order.set_status(), forcefully set it to the current situation.
-        order.status = project_status
-        if cascade:
-            order.lines.all().update(status=cascade)
-        order.save()
+        try:
+            order.set_status(project_status)
+        except InvalidOrderStatus:
+            # Avoid forcing a status onto oscar models.
+            # A order could be manually updated to a new status (e.g. paid outside of docdata),
+            # while the docdata order remains in a pending state.
+            logging.warning("Order {0} status is {1}, will not change to {2}".format(order.number, order.status, project_status))
+            return
 
         # Send the signal
         super(Facade, self).order_status_changed(docdataorder, old_status, new_status)
