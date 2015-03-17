@@ -16,10 +16,13 @@ Version 1.2.5
    This only affects passing kwargs. Passing the order key works but is deprecated, pass a ``DocdataOrder`` instead.
 
 * Added ``update_docdata_order`` management command.
-* Using ``-v2`` in managements commands displays the SOAP XML conversation (via logging).
+* Added ``-v3`` flag for managements commands to displays the SOAP XML conversation (via logging).
 * Increased ``DOCDATA_PAYMENT_SUCCESS_MARGIN`` for USD to $1.50
+* Fix reverting order statuses, using ``Order.set_status()`` now so manually changed order statuses are not reversed.
 * Fix detecting "paid" status when the customer starts multiple payment attempts, but then completes the first.
   (the root issue here is the lack of a missing global "cluster/order status" field in the API - so we have to make guesses).
+* Fix handling of paid orders that have a partial refund (e.g. 5%).
+* Fix handling of orders with received a chargeback.
 * Fix ``DocdataOrder.last_payment`` property.
 
 Version 1.2.4
