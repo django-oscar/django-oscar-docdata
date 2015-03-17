@@ -455,103 +455,111 @@ class Interface(object):
         :type order: DocdataOrder
         :type payments: list of DocdataPayment
         """
-        if any(p.authorization.status == DocdataClient.STATUS_AUTHORIZED for p in report.payment):
-            # If there is a payment which is authorized, take that.
-            # Ignore other payments that may have been tried too, but failed.
-            #
-            # This handles the strange situation we've seen:
-            # - Customer initiated both a PayPal and VISA payment
-            # - Then completes the PayPal payment.
-            # - Hence the last payment is NEW, but the first is AUTHORIZED.
-            status = DocdataClient.STATUS_AUTHORIZED
-        else:
-            latest_payment_report = payments[-1]._source
-            status = str(latest_payment_report.authorization.status)
-
+        new_status = None
         totals = report.approximateTotals
 
-        # Some status mapping overrides.
-        # Using status of last payment report line.
-        new_status = self.status_mapping.get(status, DocdataOrder.STATUS_UNKNOWN)
+        for payment in report.payment:
+            latest_payment_report = payment
 
-        # Stay in cancelled/expired, don't switch back to NEW
-        # Even though the payment cluster is set to 'closed_expired',
-        # Docdata doesn't expire the individual payment report lines.
-        if order.status in (DocdataOrder.STATUS_EXPIRED, DocdataOrder.STATUS_CANCELLED) \
-        and new_status in (DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS):
-            new_status = order.status
+            if payment.authorization.status == DocdataClient.STATUS_AUTHORIZED:
+                # If there is a payment which is authorized, take that.
+                # Ignore other payments that may have been tried too, but failed.
+                #
+                # This handles the strange situation we've seen:
+                # - Customer initiated both a PayPal and VISA payment
+                # - Then completes the PayPal payment.
+                # - Hence the last payment is NEW, but the first is AUTHORIZED.
+                payment_status = DocdataClient.STATUS_AUTHORIZED
+            else:
+                # Using status of last payment report line as "global" status,
+                # Because there is no other way to get an idea of what the status should be.
+                payment_status = str(latest_payment_report.authorization.status)
 
-        # Integration Manual Order API 1.0 - Document version 1.0, 08-12-2012 - Page 33:
-        #
-        # Safe route: The safest route to check whether all payments were made is for the merchants
-        # to refer to the "Total captured" amount to see whether this equals the "Total registered
-        # amount". While this may be the safest indicator, the downside is that it can sometimes take a
-        # long time for acquirers or shoppers to actually have the money transferred and it can be
-        # captured.
-        #
-        if status == DocdataClient.STATUS_AUTHORIZED:
+            logger.debug("- Payment cluster {0} payment {1}, {2}: auth status: {3}".format(order.order_key, payment.id, payment.paymentMethod, payment_status))
 
-            # Because currency conversions may cause payments to happen with a few cents less,
-            # this workaround makes sure those orders will still be marked as paid!
-            # If you don't like this, the alternative is using DOCDATA_PAYMENT_SUCCESS_MARGIN = {}
-            # and listening for the callback=SUCCESS value in the `return_view_called` signal.
-            margin = 0
-            if order.currency == totals._exchangedTo:  # Reads XML attribute.
-                if any(p.authorization.amount._currency != order.currency for p in report.payment):
-                    # Order has a currency conversion, apply the margin
-                    margin = appsettings.DOCDATA_PAYMENT_SUCCESS_MARGIN.get(totals._exchangedTo, 0)
+            # Some status mapping overrides.
+            if new_status != DocdataClient.STATUS_AUTHORIZED:
+                new_status = self.status_mapping.get(payment_status, DocdataOrder.STATUS_UNKNOWN)
 
-                    # But if it exceeds the totalRegistered (e.g. it's 0), avoid making everything as paid!
-                    if margin >= totals.totalRegistered:
-                        margin = 0
+            # Stay in cancelled/expired, don't switch back to NEW
+            # Even though the payment cluster is set to 'closed_expired',
+            # Docdata doesn't expire the individual payment report lines.
+            if order.status in (DocdataOrder.STATUS_EXPIRED, DocdataOrder.STATUS_CANCELLED) \
+            and new_status in (DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS):
+                new_status = order.status
+
+            # Integration Manual Order API 1.0 - Document version 1.0, 08-12-2012 - Page 33:
+            #
+            # Safe route: The safest route to check whether all payments were made is for the merchants
+            # to refer to the "Total captured" amount to see whether this equals the "Total registered
+            # amount". While this may be the safest indicator, the downside is that it can sometimes take a
+            # long time for acquirers or shoppers to actually have the money transferred and it can be
+            # captured.
+            #
+            if payment_status == DocdataClient.STATUS_AUTHORIZED:
+
+                # Because currency conversions may cause payments to happen with a few cents less,
+                # this workaround makes sure those orders will still be marked as paid!
+                # If you don't like this, the alternative is using DOCDATA_PAYMENT_SUCCESS_MARGIN = {}
+                # and listening for the callback=SUCCESS value in the `return_view_called` signal.
+                margin = 0
+                if order.currency == totals._exchangedTo:  # Reads XML attribute.
+                    if any(p.authorization.amount._currency != order.currency for p in report.payment):
+                        # Order has a currency conversion, apply the margin
+                        margin = appsettings.DOCDATA_PAYMENT_SUCCESS_MARGIN.get(totals._exchangedTo, 0)
+
+                        # But if it exceeds the totalRegistered (e.g. it's 0), avoid making everything as paid!
+                        if margin >= totals.totalRegistered:
+                            margin = 0
 
 
-            if totals.totalCaptured >= (totals.totalRegistered - margin):
-                # There is income!
-                payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
+                if totals.totalCaptured >= (totals.totalRegistered - margin):
+                    # There is income, and order was fully paid!
+                    payment_sum = (totals.totalCaptured - totals.totalChargedback - totals.totalRefunded)
 
-                if payment_sum >= (totals.totalRegistered - margin):
-                    # With all capture changes etc.. it's still what was registered.
-                    # Full amount is paid.
-                    new_status = DocdataOrder.STATUS_PAID
-                    logger.info("Payment cluster {0} Registered: {1} >= Total Captured: {2} (margin: {3}); new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured, margin))
+                    if payment_sum >= (totals.totalRegistered - margin):
+                        # With all capture changes etc.. it's still what was registered.
+                        # Full amount is paid.
+                        new_status = DocdataOrder.STATUS_PAID
+                        logger.info("Payment cluster {0} Registered: {1} >= Total Captured: {2} (margin: {3}); new status PAID".format(order.order_key, totals.totalRegistered, totals.totalCaptured, margin))
 
-                elif payment_sum == 0:
-                    # A payment was captured, but the totals are 0.
-                    # See if there is a charge back or refund.
-                    logger.info("Payment cluster {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
-                        order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
-                    ))
+                    elif payment_sum == 0:
+                        # A payment was captured, but the totals are 0.
+                        # See if there is a charge back or refund.
+                        logger.info("Payment cluster {0} Total Registered: {1} Total Captured: {2} Total Chargedback: {3} Total Refunded: {4}".format(
+                            order.order_key, totals.totalRegistered, totals.totalCaptured, totals.totalChargedback, totals.totalRefunded
+                        ))
 
-                    # See what happened with the last payment addition
-                    authorization = latest_payment_report.authorization
+                        # See what happened with the last payment addition
+                        authorization = latest_payment_report.authorization
 
-                    # Chargeback.
-                    # TODO: Add chargeback fee somehow (currently E0.50).
-                    if totals.totalCaptured == totals.totalChargedback:
-                        if hasattr(authorization, 'chargeback') and len(authorization.chargeback) > 0:
-                            logger.info("Payment cluster {0} chargedback: {1}".format(order.order_key, authorization.chargeback[0].reason))
-                        else:
-                            logger.info("Payment cluster {0} chargedback.".format(order.order_key))
+                        # Chargeback.
+                        # TODO: Add chargeback fee somehow (currently E0.50).
+                        if totals.totalCaptured == totals.totalChargedback:
+                            print authorization
+                            if hasattr(authorization, 'chargeback') and len(authorization.chargeback) > 0:
+                                logger.info("Payment cluster {0} chargedback: {1}".format(order.order_key, getattr(authorization.chargeback[0], 'reason', '(reason not provided)')))
+                            else:
+                                logger.info("Payment cluster {0} chargedback.".format(order.order_key))
 
-                        new_status = DocdataOrder.STATUS_CHARGED_BACK
+                            new_status = DocdataOrder.STATUS_CHARGED_BACK
 
-                    # Refund.
-                    # TODO: Log more info from refund when we have an example.
-                    if totals.totalCaptured == totals.totalRefunded:
-                        logger.info("Payment cluster {0} refunded.".format(order.order_key))
-                        new_status = DocdataOrder.STATUS_REFUNDED
+                        # Refund.
+                        # TODO: Log more info from refund when we have an example.
+                        if totals.totalCaptured == totals.totalRefunded:
+                            logger.info("Payment cluster {0} refunded.".format(order.order_key))
+                            new_status = DocdataOrder.STATUS_REFUNDED
 
-                    #payment.amount = 0
-                    #payment.save()
+                        #payment.amount = 0
+                        #payment.save()
 
-                else:
-                    # Show as error instead.
-                    logger.error(
-                        "Payment cluster {0} chargeback and refunded sum is negative. Please investigate.\n"
-                        "Totals={1}".format(order.order_key, totals)
-                    )
-                    new_status = DocdataOrder.STATUS_UNKNOWN
+                    else:
+                        # Show as error instead.
+                        logger.error(
+                            "Payment cluster {0} chargeback and refunded sum is negative. Please investigate.\n"
+                            "Totals={1}".format(order.order_key, totals)
+                        )
+                        new_status = DocdataOrder.STATUS_UNKNOWN
 
 
         # Detect a nasty error condition that needs to be manually fixed.
