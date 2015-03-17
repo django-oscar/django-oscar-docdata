@@ -385,7 +385,7 @@ class Interface(object):
             ddpayment.amount_allocated = amount_allocated
             ddpayment.amount_debited = self._get_payment_sum(payment, "capture", "CAPTURED")
             ddpayment.amount_refunded = self._get_payment_sum(payment, "refund", "CAPTURED")
-            ddpayment.amount_chargeback = self._get_payment_sum(payment, "refund", "CHARGED")
+            ddpayment.amount_chargeback = self._get_payment_sum(payment, "chargeback", "CHARGED")
 
             # Track changes
             new_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
