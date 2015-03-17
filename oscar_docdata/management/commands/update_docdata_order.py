@@ -13,6 +13,8 @@ class Command(BaseCommand):
     option_list = (
         make_option('--all', action='store_true', dest='all', default=False,
             help="Update all orders"),
+        make_option('--status', action='store', dest='status', default=None,
+            help="Update all orders of a given status"),
     ) + BaseCommand.option_list
 
 
@@ -22,7 +24,10 @@ class Command(BaseCommand):
         """
         # At -v2 SOAP requests are outputted.
         do_all = options['all']
+        only_status = options['status']
         verbosity = int(options['verbosity'])
+
+        # Apply verbosity
         logging.getLogger('oscar_docdata.interface').setLevel('WARNING' if verbosity < 2 else 'DEBUG')
         logging.getLogger('suds.transport').setLevel('INFO' if verbosity < 3 else 'DEBUG')
 
@@ -31,6 +36,9 @@ class Command(BaseCommand):
 
         if do_all:
             orders = qs.all()
+
+            if only_status:
+                orders = orders.filter(status=only_status)
 
             if args:
                 raise CommandError("No order numbers have to be provided for --all")
@@ -47,6 +55,9 @@ class Command(BaseCommand):
                     self.stderr.write(u"- Order does not exist: {0}\n".format(order_number))
                     continue
                 else:
+                    if only_status and order.status != only_status:
+                        self.stderr.write(u"- Order {0} does not have status {1}, but {2}\n".format(order_number, only_status, order.status))
+                        continue
                     orders.append(order)
 
         for order in orders:
