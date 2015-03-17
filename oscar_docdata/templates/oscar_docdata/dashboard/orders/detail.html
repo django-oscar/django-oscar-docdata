@@ -46,7 +46,7 @@
                 </tr>
                 <tr>
                     <th>{% trans "Payment cluster key" %}</th>
-                    <td>{{ object.order_key }}</td>
+                    <td><a href="https://backoffice.docdatapayments.com/ps/com.tripledeal.paymentservice.backoffice.MerchantReportPayoutTransaction?merchant_transaction_id={{ object.merchant_order_id }}&search_merchant_transaction_id=Search&transaction_id=&payment_id=">{{ object.order_key }}</a></td>
                 </tr>
                 <tr>
                     <th>{% trans "Total gross amount" %}</th>
@@ -58,7 +58,7 @@
                 </tr>
                 <tr>
                     <th>{% trans "Status" %}</th>
-                    <td>{{ object.status }}</td>
+                    <td>{{ object.get_status_display }}</td>
                 </tr>
                 <tr>
                     <th>{% trans "Language" %}</th>
