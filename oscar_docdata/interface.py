@@ -257,9 +257,9 @@ class Interface(object):
                         new_status = indented_status or DocdataOrder.STATUS_NEW
             else:
                 logger.error(
-                    "Payment cluster {0} has no payment yet, and unknown 'approximateTotals' heuristics.\n"
+                    "Payment cluster %s has no payment yet, and unknown 'approximateTotals' heuristics.\n"
                     "Status can't be reliably determined. Please investigate.\n"
-                    "Totals={1}".format(order.order_key, totals)
+                    "Totals=%s", order.order_key, totals
                 )
                 if order.status in (DocdataOrder.STATUS_EXPIRED, DocdataOrder.STATUS_CANCELLED):
                     # Stay in cancelled/expired, don't switch back to NEW
@@ -472,9 +472,9 @@ class Interface(object):
         total_registered = long(totals.totalRegistered)
         total_gross_cents = long(order.total_gross_amount * 100)
         if new_status != DocdataOrder.STATUS_CANCELLED and total_registered != total_gross_cents:
-            logger.error("Payment cluster {0} total: {1} does not equal Total Registered: {2}.".format(
+            logger.error("Payment cluster %s total: %s does not equal Total Registered: %s.",
                 order.order_key, total_gross_cents, total_registered
-            ))
+            )
 
         # Webservice doesn't return payments in the correct order (or reversed).
         # So far, the payments can only be sorted by ID.
@@ -613,9 +613,8 @@ class Interface(object):
         else:
             # Show as error instead, this is not handled yet.
             logger.error(
-                "Payment cluster {0} chargeback and refunded sum is negative. Please investigate.\n"
-                "Payment sum={1} "
-                "Totals={2}".format(order.order_key, payment_sum, totals)
+                "Payment cluster %s chargeback and refunded sum is negative. Please investigate.\n"
+                "Payment sum=%s Totals=%s", order.order_key, payment_sum, totals
             )
             new_status = DocdataOrder.STATUS_UNKNOWN
 

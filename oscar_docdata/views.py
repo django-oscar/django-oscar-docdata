@@ -49,7 +49,7 @@ class UpdateOrderMixin(object):
         try:
             return DocdataOrder.objects.select_for_update().active_merchants().get(**{self.order_slug_field: order_slug})
         except DocdataOrder.DoesNotExist:
-            logger.error("Order {0}='{1}' not found to update payment status.".format(self.order_slug_field, order_slug))
+            logger.error("Order {0}='%s' not found to update payment status.".format(self.order_slug_field), order_slug)
             raise Http404(u"Order {0}='{1}' not found!".format(self.order_slug_field, order_slug))
 
     def update_order(self, order):

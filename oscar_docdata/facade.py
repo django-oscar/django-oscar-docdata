@@ -181,7 +181,7 @@ class Facade(Interface):
             # Avoid forcing a status onto oscar models.
             # A order could be manually updated to a new status (e.g. paid outside of docdata),
             # while the docdata order remains in a pending state.
-            logging.warning("Order {0} status is {1}, will not change to {2}".format(order.number, order.status, project_status))
+            logging.warning("Order %s status is %s, will not change to %s", order.number, order.status, project_status)
             return
 
         # Send the signal

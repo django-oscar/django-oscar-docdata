@@ -23,6 +23,7 @@ Version 1.2.5
   (the root issue here is the lack of a missing global "cluster/order status" field in the API - so we have to make guesses).
 * Fix handling of paid orders that have a partial refund (e.g. 5%).
 * Fix handling of orders with received a chargeback.
+* Fix using ``%s`` in logging statements so Sentry can group similar events.
 * Fix ``DocdataOrder.last_payment`` property.
 
 Version 1.2.4

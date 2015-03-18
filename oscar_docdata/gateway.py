@@ -90,7 +90,7 @@ def get_suds_client(testing_mode=False):
         CACHED_CLIENT[url] = client
         return client
     except URLError as e:
-        logger.error('{0} {1}'.format("Could not initialize SUDS SOAP client to connect to Docdata", str(e)))
+        logger.error("Could not initialize SUDS SOAP client to connect to Docdata: {0}".format(str(e)))
         raise
 
 
@@ -114,8 +114,8 @@ class DocdataAPIVersionPlugin(suds.plugin.MessagePlugin):
 #            location_attribute.setValue('https://secure.docdatapayments.com:443/ps/services/paymentservice/1_0')
 
 
-def log_docdata_error(error, message):
-    logger.error(u"{0}: code={1}, error={2}".format(message, error._code, error.value))
+def log_docdata_error(soap_error, message, *args, **kwargs):
+    logger.error(u"{0}: code={1}, error={2}".format(message, soap_error._code, soap_error.value), *args, **kwargs)
 
 
 class DocdataClient(object):
@@ -346,7 +346,7 @@ class DocdataClient(object):
             return CreateReply(order_id, order_key)
         elif hasattr(reply, 'createError'):
             error = reply.createError.error
-            log_docdata_error(error, "DocdataClient: failed to create payment for order {0}".format(order_id))
+            log_docdata_error(error, "DocdataClient: failed to create payment for order %s", order_id)
             raise DocdataCreateError(error._code, error.value)
         else:
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
@@ -394,7 +394,7 @@ class DocdataClient(object):
             return StartReply(reply.startSuccess.paymentId)
         elif hasattr(reply, 'startError'):
             error = reply.createError.error
-            log_docdata_error(error, "DocdataClient: failed to get start payment for order {0}".format(order_key))
+            log_docdata_error(error, "DocdataClient: failed to get start payment for order %s", order_key)
             raise DocdataStartError(error._code, error.value)
         else:
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
@@ -414,7 +414,7 @@ class DocdataClient(object):
             return True
         elif hasattr(reply, 'cancelError'):
             error = reply.cancelError.error
-            log_docdata_error(error, "DocdataClient: failed to cancel the order {0}".format(order_key))
+            log_docdata_error(error, "DocdataClient: failed to cancel the order %s", order_key)
             raise DocdataCancelError(error._code, error.value)
         else:
             logger.error("Unexpected response node from docdata!")
@@ -468,7 +468,7 @@ class DocdataClient(object):
             return StatusReply(order_key, reply.statusSuccess.report)
         elif hasattr(reply, 'statusError'):
             error = reply.statusError.error
-            log_docdata_error(error, "DocdataClient: failed to get status for payment cluster {0}".format(order_key))
+            log_docdata_error(error, "DocdataClient: failed to get status for payment cluster %s", order_key)
             raise DocdataStatusError(error._code, error.value)
         else:
             logger.error("Unexpected response node from docdata!")
@@ -492,7 +492,7 @@ class DocdataClient(object):
             return StatusReply(order_key, reply.statusSuccess.report)
         elif hasattr(reply, 'statusError'):
             error = reply.statusError.error
-            log_docdata_error(error, "DocdataClient: failed to get status for payment cluster {0}".format(order_key))
+            log_docdata_error(error, "DocdataClient: failed to get status for payment cluster %s", order_key)
             raise DocdataStatusError(error._code, error.value)
         else:
             logger.error("Unexpected response node from docdata!")
