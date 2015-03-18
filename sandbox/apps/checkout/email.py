@@ -1,5 +1,5 @@
 import logging
-from django.contrib.sites.models import get_current_site, Site
+from django.contrib.sites.models import get_current_site
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.db.models import get_model
 from oscar.core.loading import get_class
@@ -29,7 +29,7 @@ def send_confirmation_message_once(request, order, communication_type_code='ORDE
 
 def send_confirmation_message(request, order, communication_type_code='ORDER_PLACED', **kwargs):
     code = communication_type_code
-    messages, event_type = get_confirmation_message(request, order, communication_type_code, **kwargs)
+    messages, event_type = get_email_message(request, order, communication_type_code)
 
     if messages and messages['body']:
         logger.info("Order #%s - sending %s messages", order.number, code)
@@ -41,14 +41,15 @@ def send_confirmation_message(request, order, communication_type_code='ORDER_PLA
                        order.number, code)
 
 
-def get_confirmation_message(request, order, communication_type_code='ORDER_PLACED', **kwargs):
+def get_email_message(request, order, communication_type_code='ORDER_PLACED'):
     code = communication_type_code
-    ctx = {'user': request.user,
+    user = order.user if order.user_id else request.user
+    ctx = {'user': user,
            'order': order,
            'site': order.site,
            'lines': order.lines.all()}
 
-    if not request.user.is_authenticated():
+    if not user.is_authenticated():
         # Attempt to add the anon order status URL to the email template
         # ctx.
         try:
@@ -59,7 +60,7 @@ def get_confirmation_message(request, order, communication_type_code='ORDER_PLAC
             # We don't care that much if we can't resolve the URL
             pass
         else:
-            site = Site.objects.get_current()
+            site = get_current_site(request)
             ctx['status_url'] = 'http://%s%s' % (site.domain, path)
 
     try:
