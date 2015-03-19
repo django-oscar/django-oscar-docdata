@@ -175,6 +175,7 @@ class Facade(Interface):
             logging.info("Order {0} status is already {1}, skipping signal.".format(order.number, order.status))
             return
 
+        old_oscar_status = order.status
         try:
             order.set_status(project_status)
         except InvalidOrderStatus:
@@ -183,6 +184,8 @@ class Facade(Interface):
             # while the docdata order remains in a pending state.
             logging.warning("Order %s status is %s, will not change to %s", order.number, order.status, project_status)
             return
+        else:
+            logging.info("Order {0} status changed from {1} to {2}.".format(order.number, old_oscar_status, order.status))
 
         # Send the signal
         super(Facade, self).order_status_changed(docdataorder, old_status, new_status)
