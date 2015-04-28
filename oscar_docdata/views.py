@@ -102,6 +102,11 @@ class OrderReturnView(UpdateOrderMixin, View):
         # Allow other code to perform actions, e.g. send a confirmation email.
         responses = return_view_called.send(sender=self.__class__, request=request, order=self.order, callback=callback)
 
+        # Allow a signal receiver to override the returned URL and return a response.
+        for receiver, response in responses:
+            if response and isinstance(response, HttpResponse):
+                return response
+
         # Redirect to thank you page, or the cancelled page,
         # depending on the callback parameter
         with translation.override(self.order.language):   # Allow i18n_patterns() to work properly

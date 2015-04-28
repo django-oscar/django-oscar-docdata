@@ -17,6 +17,7 @@ Version 1.2.5
 
 * Added ``update_docdata_order`` management command.
 * Added ``-v3`` flag for managements commands to displays the SOAP XML conversation (via logging).
+* Allow ``return_view_called`` signal handlers to return a response, thereby overriding the default response.
 * Increased ``DOCDATA_PAYMENT_SUCCESS_MARGIN`` for USD to $1.50
 * Fix reverting order statuses, using ``Order.set_status()`` now so manually changed order statuses are not reversed.
 * Fix detecting "paid" status when the customer starts multiple payment attempts, but then completes the first.
