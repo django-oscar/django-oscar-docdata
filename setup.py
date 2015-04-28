@@ -34,7 +34,7 @@ def find_version(*parts):
 setup(
     name='django-oscar-docdata',
     version=find_version('oscar_docdata', '__init__.py'),
-    license='Apache License, Version 2.0',
+    license='Apache 2.0',
 
     install_requires=[
         'suds-jurko>=0.6',             # for SOAP requests. (suds-jurko = maintained fork of suds)
