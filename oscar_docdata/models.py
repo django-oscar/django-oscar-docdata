@@ -36,7 +36,7 @@ class DocdataOrder(models.Model):
         (STATUS_UNKNOWN, _("Unknown")),
     )
 
-    merchant_name = models.CharField(_("Docdata account"), max_length=100, default=lambda: appsettings.DOCDATA_MERCHANT_NAME)
+    merchant_name = models.CharField(_("Docdata account"), max_length=100, default=appsettings.DOCDATA_MERCHANT_NAME)
     merchant_order_id = models.CharField(_("Order ID"), max_length=100, default='')
     order_key = models.CharField(_("Payment cluster ID"), max_length=200, default='', unique=True)
 
