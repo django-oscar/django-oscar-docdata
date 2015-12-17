@@ -3,6 +3,11 @@ Changelog
 
 Version structure: the "1.2" refers to the Docdata API version.
 
+Version 1.2.7
+-------------
+
+* Added django-polymorphic 0.8 support
+
 Version 1.2.6
 -------------
 
