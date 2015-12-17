@@ -1,0 +1,287 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-17 11:42+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: dashboard/forms.py:7
+msgid "Order number"
+msgstr ""
+
+#: dashboard/forms.py:8 models.py:47
+#: templates/oscar_docdata/dashboard/orders/detail.html:60
+#: templates/oscar_docdata/dashboard/orders/detail.html:126
+#: templates/oscar_docdata/dashboard/orders/list.html:61
+msgid "Status"
+msgstr ""
+
+#: dashboard/views.py:118
+#, python-brace-format
+msgid "The order \"{order_id}\" was cancelled successfully."
+msgstr ""
+
+#: models.py:31
+msgid "New"
+msgstr ""
+
+#: models.py:32
+msgid "In Progress"
+msgstr ""
+
+#: models.py:33
+msgid "Pending"
+msgstr ""
+
+#: models.py:34
+msgid "Paid"
+msgstr ""
+
+#: models.py:35
+msgid "Paid, part refunded"
+msgstr ""
+
+#: models.py:36
+msgid "Cancelled"
+msgstr ""
+
+#: models.py:37
+msgid "Charged back"
+msgstr ""
+
+#: models.py:38
+msgid "Refunded"
+msgstr ""
+
+#: models.py:39
+msgid "Expired"
+msgstr ""
+
+#: models.py:40
+msgid "Unknown"
+msgstr ""
+
+#: models.py:43
+msgid "Docdata account"
+msgstr ""
+
+#: models.py:44 templates/oscar_docdata/dashboard/orders/detail.html:40
+#: templates/oscar_docdata/dashboard/orders/list.html:58
+msgid "Order ID"
+msgstr ""
+
+#: models.py:45
+msgid "Payment cluster ID"
+msgstr ""
+
+#: models.py:48 templates/oscar_docdata/dashboard/orders/detail.html:64
+msgid "Language"
+msgstr ""
+
+#: models.py:51 templates/oscar_docdata/dashboard/orders/detail.html:52
+#: templates/oscar_docdata/dashboard/orders/list.html:60
+msgid "Total gross amount"
+msgstr ""
+
+#: models.py:52 templates/oscar_docdata/dashboard/orders/detail.html:56
+msgid "Currency"
+msgstr ""
+
+#: models.py:53 models.py:144
+msgid "Country_code"
+msgstr ""
+
+#: models.py:56 templates/oscar_docdata/dashboard/orders/detail.html:88
+msgid "Total registered"
+msgstr ""
+
+#: models.py:57 templates/oscar_docdata/dashboard/orders/detail.html:92
+msgid "Total shopper pending"
+msgstr ""
+
+#: models.py:58 templates/oscar_docdata/dashboard/orders/detail.html:96
+msgid "Total acquirer pending"
+msgstr ""
+
+#: models.py:59 templates/oscar_docdata/dashboard/orders/detail.html:100
+msgid "Total acquirer approved"
+msgstr ""
+
+#: models.py:60 templates/oscar_docdata/dashboard/orders/detail.html:104
+msgid "Total captured"
+msgstr ""
+
+#: models.py:61 templates/oscar_docdata/dashboard/orders/detail.html:108
+msgid "Total refunded"
+msgstr ""
+
+#: models.py:62 templates/oscar_docdata/dashboard/orders/detail.html:112
+msgid "Total changed back"
+msgstr ""
+
+#: models.py:65 models.py:124
+#: templates/oscar_docdata/dashboard/orders/list.html:62
+msgid "created"
+msgstr ""
+
+#: models.py:66 models.py:125
+msgid "updated"
+msgstr ""
+
+#: models.py:72
+msgid "Docdata Order"
+msgstr ""
+
+#: models.py:73 templates/oscar_docdata/dashboard/orders/confirm_cancel.html:19
+#: templates/oscar_docdata/dashboard/orders/detail.html:19
+#: templates/oscar_docdata/dashboard/orders/list.html:7
+#: templates/oscar_docdata/dashboard/orders/list.html:16
+#: templates/oscar_docdata/dashboard/orders/list.html:22
+#: templates/oscar_docdata/dashboard/orders/list.html:54
+msgid "Docdata Orders"
+msgstr ""
+
+#: models.py:108 templates/oscar_docdata/dashboard/orders/detail.html:125
+msgid "Payment id"
+msgstr ""
+
+#: models.py:111
+msgid "status"
+msgstr ""
+
+#: models.py:117 templates/oscar_docdata/dashboard/orders/detail.html:131
+msgid "Confidence level"
+msgstr ""
+
+#: models.py:118
+msgid "Amount Allocated"
+msgstr ""
+
+#: models.py:119 templates/oscar_docdata/dashboard/orders/detail.html:127
+msgid "Amount Debited"
+msgstr ""
+
+#: models.py:120 templates/oscar_docdata/dashboard/orders/detail.html:128
+msgid "Amount Refunded"
+msgstr ""
+
+#: models.py:121 templates/oscar_docdata/dashboard/orders/detail.html:129
+msgid "Amount Changed back"
+msgstr ""
+
+#: models.py:132
+msgid "Payment"
+msgstr ""
+
+#: models.py:133 templates/oscar_docdata/dashboard/orders/detail.html:120
+msgid "Payments"
+msgstr ""
+
+#: models.py:153
+msgid "Direct Debit Payment"
+msgstr ""
+
+#: models.py:154
+msgid "Derect Debit Payments"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:8
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:22
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:27
+#, python-format
+msgid "Cancel Docdata Order '%(title)s'?"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:15
+#: templates/oscar_docdata/dashboard/orders/detail.html:15
+#: templates/oscar_docdata/dashboard/orders/list.html:13
+msgid "Dashboard"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:32
+msgid "Cancel Docdata Order"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:38
+#, python-format
+msgid "Cancel Docdata Order <strong>%(title)s</strong> - are you sure?"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:40
+msgid "Warning: this will cancel the entire order!"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:44
+msgid "Cancel"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:45
+msgid "or"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/confirm_cancel.html:45
+msgid "abort"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:36
+msgid "Docdata order details"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:44
+msgid "Merchant account"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:48
+#: templates/oscar_docdata/dashboard/orders/list.html:59
+msgid "Payment cluster key"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:68
+msgid "Country"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:72
+msgid "Actions"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:74
+msgid "Update status"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:76
+msgid "Cancel order"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:84
+msgid "Amounts"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:130
+msgid "Payment method"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/detail.html:149
+#: templates/oscar_docdata/dashboard/orders/list.html:83
+msgid "There are no docdata orders to display."
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/list.html:28
+#: templates/oscar_docdata/dashboard/orders/list.html:49
+msgid "Search"
+msgstr ""
+
+#: templates/oscar_docdata/dashboard/orders/list.html:75
+msgid "View"
+msgstr ""
