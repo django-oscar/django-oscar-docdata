@@ -2,8 +2,12 @@ from decimal import Decimal as D
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from oscar_docdata.managers import DocdataOrderManager
-from polymorphic import PolymorphicModel
 from . import appsettings
+
+try:
+    from polymorphic.models import PolymorphicModel  # django-polymorphic 0.8
+except ImportError:
+    from polymorphic import PolymorphicModel
 
 
 class DocdataOrder(models.Model):
