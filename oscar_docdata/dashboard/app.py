@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from oscar.core.application import Application
 from . import views
 
@@ -22,7 +22,7 @@ class DocdataOrderDashboardApplication(Application):
             url(r'^update-status/(?P<pk>[-\w]+)/$', self.update_status_view.as_view(), name='docdata-order-update-status'),
             url(r'^cancel/(?P<pk>[-\w]+)/$', self.cancel_view.as_view(), name='docdata-order-cancel'),
         ]
-        return self.post_process_urls(patterns('', *urls))
+        return self.post_process_urls(urls)
 
 
 application = DocdataOrderDashboardApplication()
