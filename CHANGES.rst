@@ -3,6 +3,11 @@ Changelog
 
 Version structure: the "1.2" refers to the Docdata API version.
 
+Version 1.2.8
+-------------
+
+* Fixed Django 1.10 deprecation warnings
+
 Version 1.2.7
 -------------
 
