@@ -3,6 +3,11 @@ Changelog
 
 Version structure: the "1.2" refers to the Docdata API version.
 
+Version 1.2.9
+-------------
+
+* Fixed the ``default`` value of the ``merchant_name`` field in the migrations.
+
 Version 1.2.8
 -------------
 
