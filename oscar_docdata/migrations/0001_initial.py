@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 from decimal import Decimal
+from oscar_docdata import appsettings
 
 
 class Migration(migrations.Migration):
@@ -16,7 +17,7 @@ class Migration(migrations.Migration):
             name='DocdataOrder',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('merchant_name', models.CharField(default=b'wakawakafoundation_org', max_length=100, verbose_name='Docdata account')),
+                ('merchant_name', models.CharField(default=appsettings.DOCDATA_MERCHANT_NAME, max_length=100, verbose_name='Docdata account')),
                 ('merchant_order_id', models.CharField(default=b'', max_length=100, verbose_name='Order ID')),
                 ('order_key', models.CharField(default=b'', unique=True, max_length=200, verbose_name='Payment cluster ID')),
                 ('status', models.CharField(default=b'new', max_length=50, verbose_name='Status', choices=[(b'new', 'New'), (b'in_progress', 'In Progress'), (b'pending', 'Pending'), (b'paid', 'Paid'), (b'paid_refunded', 'Paid, part refunded'), (b'cancelled', 'Cancelled'), (b'charged_back', 'Charged back'), (b'refunded', 'Refunded'), (b'expired', 'Expired'), (b'unknown', 'Unknown')])),
