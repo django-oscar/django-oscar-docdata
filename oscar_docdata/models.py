@@ -1,3 +1,7 @@
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
+
+
 from decimal import Decimal as D
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -10,6 +14,7 @@ except ImportError:
     from polymorphic import PolymorphicModel
 
 
+@python_2_unicode_compatible
 class DocdataOrder(models.Model):
     """
     Tracking of the order which is sent to docdata.
@@ -72,7 +77,7 @@ class DocdataOrder(models.Model):
         verbose_name = _("Docdata Order")
         verbose_name_plural = _("Docdata Orders")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.order_key
 
     def __repr__(self):
@@ -96,6 +101,7 @@ class DocdataOrder(models.Model):
     cancel.alters_data = True
 
 
+@python_2_unicode_compatible
 class DocdataPayment(PolymorphicModel):
     """
     A reported Docdata payment.
@@ -124,7 +130,7 @@ class DocdataPayment(PolymorphicModel):
     created = models.DateTimeField(_("created"), auto_now_add=True)
     updated = models.DateTimeField(_("updated"), auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.payment_id
 
     class Meta:
@@ -135,6 +141,7 @@ class DocdataPayment(PolymorphicModel):
 
 # NOTE: currently unused.
 # DirectDebit is used for periodic transfers (e.g. "Automatische incasso" in The Netherlands)
+@python_2_unicode_compatible
 class DocdataDirectDebitPayment(DocdataPayment):
     """
     Web direct debit direct payment.
