@@ -53,8 +53,8 @@ setup(
     author='Diederik van der Boor',
     author_email='opensource@edoburu.nl',
 
-    url='https://github.com/edoburu/django-oscar-docdata',
-    download_url='https://github.com/edoburu/django-oscar-docdata/zipball/master',
+    url='https://github.com/django-oscar/django-oscar-docdata',
+    download_url='https://github.com/django-oscar/django-oscar-docdata/zipball/master',
 
     packages=find_packages(exclude=('example*','sandbox*')),
     include_package_data=True,

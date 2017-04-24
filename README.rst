@@ -156,4 +156,4 @@ While working with the Docdata 1.0 and 1.2 API, we found the following limitatio
 We hope this will be addressed by Docdata Payments in future versions of the API.
 
 
-.. _`sandbox application`: https://github.com/edoburu/django-oscar-docdata/tree/master/sandbox
+.. _`sandbox application`: https://github.com/django-oscar/django-oscar-docdata/tree/master/sandbox

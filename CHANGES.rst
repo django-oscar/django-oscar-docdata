@@ -8,7 +8,6 @@ Version 1.2.10
 
 * Fixed Django 1.9+ support in templates.
 
-
 Version 1.2.9
 -------------
 
