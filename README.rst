@@ -10,7 +10,9 @@ DocData Payments is a large payment gateway based in The Netherlands that suppor
 Installation
 ============
 
-Install via pip::
+Install via pip:
+
+.. code-block:: bash
 
     pip install django-oscar-docdata
 
@@ -33,7 +35,9 @@ Configure the application:
 `DOCDATA_TESTING`
     Whether or not to run in testing mode. Defaults to `True`.
 
-Add to ``urls.py``::
+Add to ``urls.py``:
+
+.. code-block:: python
 
     from oscar_docdata.dashboard.app import application as docdata_app
 
@@ -42,14 +46,18 @@ Add to ``urls.py``::
         url(r'^dashboard/docdata/', include(docdata_app.urls)),
     )
 
-Add to ``settings.py``::
+Add to ``settings.py``:
+
+.. code-block:: python
 
     OSCAR_DASHBOARD_NAVIGATION[2]['children'].insert(1, {
         'label': _('Docdata Orders'),
         'url_name': 'docdata-order-list',
     })
 
-As recommendation, temporary log all events from this package as well::
+As recommendation, temporary log all events from this package as well:
+
+.. code-block:: python
 
     LOGGING = {
         # ...
