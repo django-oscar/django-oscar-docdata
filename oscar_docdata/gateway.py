@@ -12,11 +12,11 @@ import suds.client
 import suds.plugin
 from django.core.urlresolvers import reverse
 from django.utils.translation import get_language
-from urllib import urlencode
-from urllib2 import URLError
 from suds.sax.element import Element
 from oscar_docdata import appsettings, __version__ as oscar_docdata_version
 from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.error import URLError
 
 logger = logging.getLogger(__name__)
 

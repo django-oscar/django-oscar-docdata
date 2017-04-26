@@ -42,6 +42,7 @@ setup(
         'suds-jurko>=0.6',             # for SOAP requests. (suds-jurko = maintained fork of suds)
         'django-oscar>=0.5',           # version number guessed
         'django-polymorphic>=0.5.3',   # 0.5.1 has Django 1.6 support, but ask for the latest bugfix release.
+        'six>=1.10.0',                 # python3 compatibility
     ],
     requires=[
         'Django (>=1.4)',
