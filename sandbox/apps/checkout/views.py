@@ -4,6 +4,7 @@ from django.views.generic import FormView
 from oscar.apps.payment.exceptions import RedirectRequired
 from oscar.apps.checkout import views as oscar_views
 from oscar.apps.payment.models import SourceType, Source
+from six import text_type
 
 from . import forms
 from .docdata import CustomDocdataFacade
@@ -135,7 +136,7 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
             # payment transaction may already have taken place, but needs
             # to be handled gracefully.
             logger.error(u"Order #%s: unable to place order - %s", order_number, e, exc_info=True)
-            msg = unicode(e)
+            msg = text_type(e)
             self.restore_frozen_basket()
             return self.render_to_response(self.get_context_data(error=msg))
 

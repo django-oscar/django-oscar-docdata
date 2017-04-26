@@ -1,6 +1,7 @@
 from . import appsettings
 from django.db import models
 from django.db.models.query import QuerySet
+from six import iterkeys
 import django
 
 
@@ -14,7 +15,7 @@ class DocdataOrderQuerySet(QuerySet):
         """
         if len(appsettings.DOCDATA_MERCHANT_PASSWORDS) == 1:
             # Optimize SQL a little bit
-            return self.filter(merchant_name=next(appsettings.DOCDATA_MERCHANT_PASSWORDS.iterkeys()))
+            return self.filter(merchant_name=next(iterkeys(appsettings.DOCDATA_MERCHANT_PASSWORDS)))
         else:
             return self.filter(merchant_name__in=appsettings.DOCDATA_MERCHANT_PASSWORDS.keys())
 

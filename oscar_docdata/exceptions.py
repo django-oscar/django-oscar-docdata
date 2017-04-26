@@ -1,3 +1,5 @@
+from six import text_type
+
 
 class OrderKeyMissing(ValueError):
     """
@@ -16,7 +18,7 @@ class DocdataException(Exception):
     def __init__(self, code, value):
         super(DocdataException, self).__init__(value)
         self.code = code
-        self.value = unicode(value)
+        self.value = text_type(value)
 
 
 class DocdataCreateError(DocdataException):
