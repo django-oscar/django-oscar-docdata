@@ -160,6 +160,10 @@ While working with the Docdata 1.0 and 1.2 API, we found the following limitatio
   This could break with currency conversions.
   Again, because the payment cluster status is not exposed in the API.
   As workaround, there is a ``DOCDATA_PAYMENT_SUCCESS_MARGIN`` setting to add a margin of 100 cents.
+* Be prepared to have XSD validation errors (bad postcode, house number or even exclaminations in the shipper's description)::
+
+    REQUEST_DATA_INCORRECT
+    XML request does not match XSD. The data is: cvc-type.3.1.3: The value 'Great work, thanks!' of element 'ns0:description' is not valid
 
 We hope this will be addressed by Docdata Payments in future versions of the API.
 
