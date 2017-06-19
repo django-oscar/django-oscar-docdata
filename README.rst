@@ -163,7 +163,7 @@ While working with the Docdata 1.0 and 1.2 API, we found the following limitatio
 * Be prepared to have XSD validation errors for bad input. For example, a bad postcode, house number or exceeding a max length leads to errors like::
 
     REQUEST_DATA_INCORRECT
-    XML request does not match XSD. The data is: cvc-type.3.1.3: The value 'This is a wondeful product and campaign! Wish you a lot of luck!' of element 'ns0:description' is not valid
+    XML request does not match XSD. The data is: cvc-type.3.1.3: The value 'This is a wonderful product and campaign! Wish you a lot of luck!' of element 'ns0:description' is not valid
 
 We hope this will be addressed by Docdata Payments in future versions of the API.
 
