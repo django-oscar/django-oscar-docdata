@@ -141,7 +141,6 @@ class DocdataPayment(PolymorphicModel):
 
 # NOTE: currently unused.
 # DirectDebit is used for periodic transfers (e.g. "Automatische incasso" in The Netherlands)
-@python_2_unicode_compatible
 class DocdataDirectDebitPayment(DocdataPayment):
     """
     Web direct debit direct payment.
