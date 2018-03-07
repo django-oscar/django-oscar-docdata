@@ -3,7 +3,7 @@ Changelog
 
 Version structure: the "1.2" refers to the Docdata API version.
 
-Version 1.2.11 (2018-08-02)
+Version 1.2.11 (2018-03-07)
 ---------------------------
 
 * Fixed some Python 3 issues
