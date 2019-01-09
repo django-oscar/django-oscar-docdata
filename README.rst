@@ -149,7 +149,7 @@ While working with the Docdata 1.0 and 1.2 API, we found the following limitatio
  * Streets have a limit of 35 characters, so the "Address Line 1" should be truncated.
 
 * Passing invalid address fields could cause PayPal, VISA or MasterCard transactions to fail.
-* PayPal payments may fail when the "state" field is invalid (e.g. because of a typoo). This is a check done by PayPal, Docdata passes the responsability to the merchant (you).
+* PayPal payments may fail when the "state" field is invalid (e.g. because of a typoo). This is a check done by PayPal. Docdata however, passes that responsibility to the merchant (you).
 * The ``<billTo><address><state>`` field is typically ignored. Provide it via ``<invoice><shipTo><address><state>``. Seriously.
 * The individual payment objects have a status value, but the payment cluster does not.
   This means that there is no global status value to read.
