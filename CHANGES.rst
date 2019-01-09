@@ -3,10 +3,15 @@ Changelog
 
 Version structure: the "1.2" refers to the Docdata API version.
 
+Version 1.2.12 (2019-01-09)
+---------------------------
+
+* Added Python 3 trove classifiers and wheel package.
+
 Version 1.2.11 (2018-03-07)
 ---------------------------
 
-* Fixed some Python 3 issues
+* Added Python 3 support.
 
 Version 1.2.10
 --------------
