@@ -1,7 +1,7 @@
 from django.contrib import messages
-from django.core.urlresolvers import reverse_lazy, reverse
 from django.db.models import Q
 from django.http import  HttpResponseRedirect
+from django.urls import reverse_lazy, reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, View, DeleteView
 from django.views.generic.detail import SingleObjectMixin

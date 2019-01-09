@@ -2,10 +2,9 @@
 Settings for this application
 """
 from django.conf import settings
+from django.urls import reverse_lazy
 
 # Credentials as supplied by the payment provider.
-from django.core.urlresolvers import reverse_lazy
-
 DOCDATA_MERCHANT_NAME = getattr(settings, 'DOCDATA_MERCHANT_NAME')
 DOCDATA_MERCHANT_PASSWORD = getattr(settings, 'DOCDATA_MERCHANT_PASSWORD')
 DOCDATA_MERCHANT_PASSWORDS = getattr(settings, 'DOCDATA_MERCHANT_PASSWORDS', {})

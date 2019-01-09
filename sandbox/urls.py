@@ -7,19 +7,23 @@ from oscar_docdata.dashboard.app import application as docdata_app
 
 from apps.app import shop
 
-admin.autodiscover()
-
-urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
 
     # Include docdata URLs
-    url(r'^dashboard/docdata/', include(docdata_app.urls)),
+    url(r'^dashboard/docdata/', docdata_app.urls),
     url(r'^api/docdata/', include('oscar_docdata.urls')),
 
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'', include(shop.urls)),
-)
+    url(r'', shop.urls),
+]
+
 if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    if 'debug_toolbar' in settings.INSTALLED_APPS:
+        # Debug toolbar is explicitly linked, no magic that breaks on first request errors.
+        import debug_toolbar
+        urlpatterns.insert(0, url(r'^__debug__/', include(debug_toolbar.urls)))

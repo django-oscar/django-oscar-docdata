@@ -10,7 +10,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.text import Truncator
 import suds.client
 import suds.plugin
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import get_language
 from suds.sax.element import Element
 from oscar_docdata import appsettings, __version__ as oscar_docdata_version

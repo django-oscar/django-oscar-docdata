@@ -1,5 +1,5 @@
 import logging
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import FormView
 from oscar.apps.payment.exceptions import RedirectRequired
 from oscar.apps.checkout import views as oscar_views

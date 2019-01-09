@@ -110,7 +110,7 @@ class DocdataPayment(PolymorphicModel):
 
     Some payment types have additional fields, which are stored as subclass.
     """
-    docdata_order = models.ForeignKey(DocdataOrder, related_name='payments')
+    docdata_order = models.ForeignKey(DocdataOrder, on_delete=models.PROTECT, related_name='payments')
     payment_id = models.CharField(_("Payment id"), max_length=100, default='', blank=True, primary_key=True)
 
     # Note: We're not using choices here so that we can write unknown statuses if they are presented by Docdata.

@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DocdataDirectDebitPayment',
             fields=[
-                ('docdatapayment_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='oscar_docdata.DocdataPayment')),
+                ('docdatapayment_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, on_delete=models.CASCADE, to='oscar_docdata.DocdataPayment')),
                 ('holder_name', models.CharField(max_length=35)),
                 ('holder_city', models.CharField(max_length=35)),
                 ('holder_country_code', models.CharField(max_length=2, null=True, verbose_name='Country_code', blank=True)),
@@ -83,13 +83,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='docdatapayment',
             name='docdata_order',
-            field=models.ForeignKey(related_name='payments', to='oscar_docdata.DocdataOrder'),
+            field=models.ForeignKey(related_name='payments', on_delete=models.CASCADE, to='oscar_docdata.DocdataOrder'),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='docdatapayment',
             name='polymorphic_ctype',
-            field=models.ForeignKey(related_name='polymorphic_oscar_docdata.docdatapayment_set+', editable=False, to='contenttypes.ContentType', null=True),
+            field=models.ForeignKey(related_name='polymorphic_oscar_docdata.docdatapayment_set+', on_delete=models.CASCADE, editable=False, to='contenttypes.ContentType', null=True),
             preserve_default=True,
         ),
     ]
