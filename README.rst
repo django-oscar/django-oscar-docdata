@@ -42,7 +42,7 @@ Add to ``urls.py``:
     from oscar_docdata.dashboard.app import application as docdata_app
 
     urlpatterns += [
-        url(r'^api/docdata/', include('docdata.urls')),
+        url(r'^api/docdata/', include('oscar_docdata.urls')),
         url(r'^dashboard/docdata/', include(docdata_app.urls)),
     ]
 
