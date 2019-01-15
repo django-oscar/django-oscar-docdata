@@ -1,19 +1,25 @@
 from datetime import datetime
 from optparse import make_option
-from django.core.management.base import NoArgsCommand, CommandError
+
+from django.core.management import BaseCommand
+from django.core.management.base import CommandError
 from django.db.models import Sum
-from django.utils.timezone import now, get_current_timezone
+from django.utils.timezone import get_current_timezone, now
+
 from oscar_docdata.models import DocdataOrder
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "Show the monthly order statistics"
-    option_list = (
-        make_option('-s', '--status', action='store', dest='status', default='',
-            help="Which status to use, defaults to 'paid'"),
-    ) + NoArgsCommand.option_list
 
-    def handle_noargs(self, **options):
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+
+        parser.add_argument(
+            "-s", "--status", action="store", dest="status", default="", help="Which status to use, defaults to 'paid'"
+        )
+
+    def handle(self, *args, **options):
         """
         Update the status.
         """
@@ -28,6 +34,7 @@ class Command(NoArgsCommand):
             start_date = base_qs.values_list('created', flat=True).order_by('created')[0]
         except IndexError:
             self.stdout.write("No orders available")
+            return
 
         currencies = list(base_qs.values_list('currency', flat=True).order_by('currency').distinct())
 

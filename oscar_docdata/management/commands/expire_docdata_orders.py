@@ -1,21 +1,30 @@
-from datetime import timedelta
 import logging
-from optparse import make_option
-from django.core.management.base import NoArgsCommand
+from datetime import timedelta
+
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.timezone import now
+
 from oscar_docdata.facade import get_facade
 from oscar_docdata.models import DocdataOrder
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "Mark old open orders as expired"
-    option_list = (
-        make_option('-p', '--dry-run', action='store_true', dest='dry-run', default=False,
-            help="Only list what will change, don't make the actual changes"),
-    ) + NoArgsCommand.option_list
 
-    def handle_noargs(self, **options):
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+
+        parser.add_argument(
+            "-p",
+            "--dry-run",
+            action="store_true",
+            dest="dry-run",
+            default=False,
+            help="Only list what will change, don't make the actual changes",
+        )
+
+    def handle(self, *args, **options):
         """
         Update the status.
         """
