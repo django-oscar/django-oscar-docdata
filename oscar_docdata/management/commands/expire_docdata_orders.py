@@ -39,6 +39,12 @@ class Command(BaseCommand):
             .filter(status__in=expire_status_choices) \
             .filter(created__lt=(now() - timedelta(days=21)))  # 3 weeks, based on manual testing.
 
+        order_count = qs.count()
+        self.stdout.write("Collect %i orders." % order_count)
+
+        if order_count == 0:
+            return
+
         facade = get_facade()
 
         if is_dry_run:
