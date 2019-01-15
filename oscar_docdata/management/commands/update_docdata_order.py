@@ -38,6 +38,9 @@ class Command(BaseCommand):
         if do_all:
             orders = qs.all()
 
+            order_count = orders.count()
+            self.stdout.write("There are %i orders." % order_count)
+
             if only_status:
                 orders = orders.filter(status=only_status)
 
@@ -60,6 +63,8 @@ class Command(BaseCommand):
                         self.stderr.write(u"- Order {0} does not have status {1}, but {2}\n".format(order_number, only_status, order.status))
                         continue
                     orders.append(order)
+
+            self.stdout.write("Collect %i orders." % len(orders))
 
         for order in orders:
             self.stdout.write(u"- Checking {0}\n".format(order.merchant_order_id))
