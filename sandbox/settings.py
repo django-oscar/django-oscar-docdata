@@ -149,7 +149,9 @@ INSTALLED_APPS = [
     'oscar_docdata',
     'widget_tweaks'
 ]
-INSTALLED_APPS += get_core_apps()
+
+# our custom checkout app with docdata payment selection views
+INSTALLED_APPS += get_core_apps(['apps.checkout'])
 
 AUTHENTICATION_BACKENDS = (
     'oscar.apps.customer.auth_backends.EmailBackend',
