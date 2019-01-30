@@ -37,17 +37,12 @@ setup(
     name='django-oscar-docdata',
     version=find_version('oscar_docdata', '__init__.py'),
     license='Apache 2.0',
-
     install_requires=[
-        'suds-jurko>=0.6',             # for SOAP requests. (suds-jurko = maintained fork of suds)
-        'django-oscar>=0.5',           # version number guessed
-        'django-polymorphic>=0.5.3',   # 0.5.1 has Django 1.6 support, but ask for the latest bugfix release.
-        'six>=1.10.0',                 # python3 compatibility
+        'suds-jurko>=0.6',
+        'django-oscar>=1.5',
+        'django-polymorphic>=2.0',
+        'six>=1.10'
     ],
-    requires=[
-        'Django (>=1.4)',
-    ],
-
     description='Docdata Payments Gateway integration for django-oscar',
     long_description=read('README.rst'),
 
@@ -57,10 +52,8 @@ setup(
     url='https://github.com/django-oscar/django-oscar-docdata',
     download_url='https://github.com/django-oscar/django-oscar-docdata/zipball/master',
 
-    packages=find_packages(exclude=('example*','sandbox*')),
+    packages=find_packages(exclude=('example*', 'sandbox*')),
     include_package_data=True,
-
-    #test_suite = 'runtests',
 
     zip_safe=False,
     classifiers=[
@@ -70,11 +63,15 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
+        'Framework :: Django',
+        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Office/Business :: Financial',
         'Topic :: Software Development :: Libraries :: Python Modules',
