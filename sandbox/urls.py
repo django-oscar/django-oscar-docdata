@@ -22,8 +22,3 @@ if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-    if 'debug_toolbar' in settings.INSTALLED_APPS:
-        # Debug toolbar is explicitly linked, no magic that breaks on first request errors.
-        import debug_toolbar
-        urlpatterns.insert(0, url(r'^__debug__/', include(debug_toolbar.urls)))
