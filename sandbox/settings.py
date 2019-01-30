@@ -2,35 +2,22 @@ import os
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from oscar import get_core_apps, OSCAR_MAIN_TEMPLATE_DIR
+from oscar.defaults import *
 
-# Django settings for oscar project.
 PROJECT_DIR = os.path.dirname(__file__)
-location = lambda x: os.path.join(os.path.dirname(os.path.realpath(__file__)), x)
+location = lambda x: os.path.join(os.path.dirname(os.path.realpath(__file__)), x)  # noqa
 
 DEBUG = True
-SQL_DEBUG = True
-
 USE_TZ = True
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': location('db.sqlite'),                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': location('db.sqlite')
     }
 }
-ATOMIC_REQUESTS = True
-
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -66,7 +53,7 @@ MEDIA_URL = '/media/'
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-#ADMIN_MEDIA_PREFIX = '/media/admin/'
+# ADMIN_MEDIA_PREFIX = '/media/admin/'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (location('static/'),)
@@ -118,80 +105,35 @@ MIDDLEWARE = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'oscar.apps.basket.middleware.BasketMiddleware',
 )
 
-INTERNAL_IPS = ('127.0.0.1',)
-
 ROOT_URLCONF = 'urls'
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
     'handlers': {
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
+        'console': {
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'propagate': False,
-            'level':'INFO',
-        },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'oscar.checkout': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level':'INFO',
-        },
-        'django.db.backends': {
-            'handlers':['console'],
-            'propagate': False,
-            'level':'DEBUG',
-        },
-        # Extra for docdata
-        'suds.client': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-        'apps.oscar_overrides': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'oscar_docdata': {
-            'handlers': ['console'],
             'level': 'INFO',
         },
         'oscar': {
             'handlers': ['console'],
-            'level': 'WARN',
+            'level': 'DEBUG' if DEBUG is True else 'INFO',
         },
-    }
+
+        'oscar_docdata': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG is True else 'INFO',
+        },
+
+    },
 }
 
 
@@ -204,16 +146,13 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.flatpages',
     'django.contrib.staticfiles',
-    # External apps
-    #'django_extensions',
-    'debug_toolbar',
     'oscar_docdata',
-    'compressor',
+    'widget_tweaks'
 ]
 INSTALLED_APPS += get_core_apps()
 
 AUTHENTICATION_BACKENDS = (
-    'oscar.apps.customer.auth_backends.Emailbackend',
+    'oscar.apps.customer.auth_backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -225,7 +164,7 @@ APPEND_SLASH = True
 # Oscar settings
 # ==============
 
-from oscar.defaults import *
+
 OSCAR_ALLOW_ANON_CHECKOUT = True
 
 # Haystack settings
@@ -311,9 +250,3 @@ SHIPPING_EVENT_STATUS_MAPPING = {
     'shipping': 'shipping',
     'delivered': 'delivered',
 }
-
-
-try:
-    from integration import *
-except ImportError:
-    pass
