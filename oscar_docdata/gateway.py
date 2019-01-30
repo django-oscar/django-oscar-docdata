@@ -15,7 +15,7 @@ from django.utils.translation import get_language
 from suds.sax.element import Element
 from oscar_docdata import appsettings, __version__ as oscar_docdata_version
 from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
-from six import text_type
+from six import text_type, integer_types
 from six.moves.urllib.parse import urlencode
 from six.moves.urllib.error import URLError
 
@@ -961,7 +961,7 @@ class Item(object):
         :param image_url: URL to the items image (max 2048)
         """
         # Support simple values too
-        if isinstance(quantity, (int, long)):
+        if isinstance(quantity, integer_types):
             quantity = Quantity(quantity, unit='PCS')
 
         self.number = number
