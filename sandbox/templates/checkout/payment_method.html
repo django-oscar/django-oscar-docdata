@@ -5,19 +5,24 @@
 
 
 {% block content %}
+    <div class="well">
     {% if error %}
         <div class="alert alert-error">
             {{ error }}
         </div>
     {% endif %}
 
-    <form action="" method="post">
+    <form action="" method="post" class="form form-horizontal">
         {% csrf_token %}
 
         {% if form.payment_method.errors %}{{ form.payment_method.errors }}{% endif %}
-        {{ form.payment_method }}
+            {% for radio in form.payment_method %}
+                <div>
+                    {{ radio }}
+                </div>
+            {% endfor %}
 
         <p><button type="submit" class="btn btn-large btn-primary">{% trans "Continue to confirmation" %}</button>
-
     </form>
+    </div>
 {% endblock %}
