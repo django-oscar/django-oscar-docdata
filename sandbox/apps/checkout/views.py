@@ -1,13 +1,17 @@
 import logging
+
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.views.generic import FormView
+
 from oscar.apps.payment.exceptions import RedirectRequired
 from oscar.apps.checkout import views as oscar_views
-from oscar.apps.payment.models import SourceType, Source
+from oscar.apps.payment.models import Source
+
 from six import text_type
 
-from . import forms
 from .docdata import CustomDocdataFacade
+from . import forms
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +54,12 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
         method = self.checkout_session.payment_method()
         context['payment_method'] = {
             'code': method,
-            'title': forms.get_payment_method_display(method),
+            'title': self.get_payment_method_display(method),
         }
         return context
 
+    def get_payment_method_display(self, payment_method):
+        return dict(settings.WEBSHOP_PAYMENT_CHOICES).get(payment_method)
 
     def handle_place_order_submission(self, request):
         # Collect all the data!
@@ -66,7 +72,6 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
         # Start the payment process!
         # This jumps to handle_payment()
         return self.submit(**submission)
-
 
     def handle_payment(self, order_number, total, **kwargs):
         submission = kwargs['submission']
@@ -118,7 +123,6 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
         # Redirect the user to the payment provider.
         raise RedirectRequired(url)
 
-
     def _save_order(self, order_number, submission):
         # Finalize the order that PaymentDetailsView.submit() started
         # If all is ok with payment, try and place order
@@ -127,7 +131,9 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
         try:
             # Call OrderPlacementMixin.handle_order_placement()
             return self.handle_order_placement(
-                order_number, submission['user'], submission['basket'], submission['shipping_address'], submission['shipping_method'],
+                order_number, submission['user'], submission['basket'],
+                submission['shipping_address'], submission['shipping_method'],
+                submission['shipping_charge'], submission['billing_address'],
                 submission['order_total'], **(submission['order_kwargs'])
             )
         except oscar_views.UnableToPlaceOrder as e:
@@ -140,7 +146,7 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
             self.restore_frozen_basket()
             return self.render_to_response(self.get_context_data(error=msg))
 
-    def send_confirmation_message(self, order, **kwargs):
+    def send_confirmation_message(self, order, code, **kwargs):
         # Yes the order is already saved, because this is needed for Docdata.
         # However, delay sending the order confirmation!
         pass

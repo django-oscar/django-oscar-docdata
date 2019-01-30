@@ -12,7 +12,3 @@ class PaymentMethodForm(forms.Form):
         choices=settings.WEBSHOP_PAYMENT_CHOICES,
         widget=forms.RadioSelect()
     )
-
-
-def get_payment_method_display(payment_method):
-    return dict(settings.WEBSHOP_PAYMENT_CHOICES).get(payment_method)
