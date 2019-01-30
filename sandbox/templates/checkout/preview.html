@@ -3,18 +3,19 @@
 {% load i18n %}
 
 {% block payment_method %}
-    <div class="span6">
-    <h3>{% trans "Payment" %}</h3>
-    <div class="well well-success" data-behaviours="match-height">
-
-        <p>Using {{ payment_method.title }}</p>
-
-        <div class="alert-actions">
-            <a href="{% url 'checkout:payment-method' %}" class="btn">{% trans "Change payment method" %}</a>
+    <div class="col-sm-6">
+        <div class="sub-header">
+            <h2>{% trans "Payment" %}</h2>
+        </div>
+        <div class="well well-success">
+            <a href="{% url 'checkout:payment-method' %}" class="pull-right">
+                {% trans "Change" %}
+            </a>
+            <h3>{% trans "Payment" %}</h3>
+            <p>Using {{ payment_method.title }}</p>
         </div>
     </div>
-</div>
-{% endblock %}
+{% endblock payment_method %}
 
 {% block hiddenforms %}
     {{ bankcard_form.as_p }}
