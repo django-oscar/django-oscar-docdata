@@ -363,7 +363,7 @@ class Interface(object):
                 # Create new line
                 ddpayment = payment_class(
                     docdata_order=order,
-                    payment_id=long(payment.id),
+                    payment_id=int(payment.id),
                     payment_method=str(payment.paymentMethod),
                 )
                 added = True
@@ -469,8 +469,8 @@ class Interface(object):
             #         new_status = 'cancelled'
 
         # Detect a nasty error condition that needs to be manually fixed.
-        total_registered = long(totals.totalRegistered)
-        total_gross_cents = long(order.total_gross_amount * 100)
+        total_registered = int(totals.totalRegistered)
+        total_gross_cents = int(order.total_gross_amount * 100)
         if new_status != DocdataOrder.STATUS_CANCELLED and total_registered != total_gross_cents:
             logger.error("Payment cluster %s total: %s does not equal Total Registered: %s.",
                 order.order_key, total_gross_cents, total_registered
@@ -636,4 +636,4 @@ class Interface(object):
 
 def _to_decimal(amount):
     # Convert XML amount to decimal
-    return D(long(amount.value)) / 100
+    return D(int(amount.value)) / 100
