@@ -1,0 +1,14 @@
+[
+{
+  "model": "address.country",
+  "pk": "NL",
+  "fields": {
+    "iso_3166_1_a3": "NLD",
+    "iso_3166_1_numeric": "528",
+    "printable_name": "Netherlands",
+    "name": "The Netherlands",
+    "display_order": 0,
+    "is_shipping_country": true
+  }
+}
+]
