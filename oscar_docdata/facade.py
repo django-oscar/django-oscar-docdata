@@ -117,8 +117,8 @@ class Facade(Interface):
             shopper=Shopper(
                 id=user.id,
                 name=Name(
-                    first=user.first_name,
-                    last=user.last_name,
+                    first=user.first_name or "-",
+                    last=user.last_name or "-"
                 ),
                 email=user.email,
                 language=to_iso639_part1(language or get_language()),
