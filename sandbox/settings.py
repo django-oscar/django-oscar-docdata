@@ -187,8 +187,8 @@ COMPRESS_PRECOMPILERS = (
 # =========================
 
 # Test:
-DOCDATA_MERCHANT_NAME = ""          # TODO: Fill these in with your account data!!
-DOCDATA_MERCHANT_PASSWORD = ""
+DOCDATA_MERCHANT_NAME = os.environ.get("DOCDATA_MERCHANT_NAME", "")
+DOCDATA_MERCHANT_PASSWORD = os.environ.get("DOCDATA_MERCHANT_PASSWORD", "")
 DOCDATA_TESTING = True
 
 # URLs
