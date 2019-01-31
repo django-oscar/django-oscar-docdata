@@ -122,6 +122,34 @@ This includes the project-specific desisions such as:
 * When to submit confirmation emails.
 
 
+Running the Sandbox application
+-------------------------------
+
+It is possible to run the `sandbox application`_ to test this package and to see if your
+Docdata credentials work. You can set the `DOCDATA_MERCHANT_NAME` and the `DOCDATA_MERCHANT_PASSWORD`
+environment variables before running `manage.py`::
+
+    cd sandbox
+
+    # creates a local sqlite database
+    ./manage.py migrate
+
+    # loads some sample products (books)
+    ./manage.py oscar_import_catalogue fixtures/books.csv
+
+    # so you can fill out ypur shipping address
+    ./manage.py loaddata fixtures/countries.json
+
+    # run the sandbox installation with the docdata merchant username and passord
+    DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant ./manage.py runserver
+
+Docdata is really keen on having unique merchant order id's Why is not really clear as they don't
+use this references (they use their own). While testing it can happen dat you run into an error
+about unique merchant order id's. In that case you can set the following environment variable::
+
+    # just a number which will be added to the submitted order id
+    DOCDATA_ORDER_ID_START=99999
+
 Configuration of the Docdata Backoffice
 ---------------------------------------
 
