@@ -842,9 +842,9 @@ class TotalVatAmount(Vat):
         )
 
     def to_xml(self, factory):
-        # Dear Docdata: apparently, reusing Vat was not possible..?
-        #node = factory.create('ns0:totalVatAmount') does not support setting text.
-        element = Element('ns0:totalVatAmount')
+        # make sure the namespace is set to the correct one
+        metadata = factory.resolver.find('ns0:totalVatAmount')
+        element = Element("totalVatAmount", ns=metadata.namespace())
         element.setText(str(int(self.value * 100)))
         element.set('rate', self.rate)
         element.set('currency', self.currency)
@@ -870,12 +870,17 @@ class Quantity(object):
         self.unit = unit
 
     def to_xml(self, factory):
-        # Needs to be an xsd:int with an attribute
-        # Can't do that with factory.create('ns0:quantity')
-        #metadata = factory.resolver.find('ns0:quantity')
-        #ns = metadata.namespace()
+        # Needs to be an xsd:int with an attribute. Suds is not
+        # responding nicely with basic types combined with attributes, so
+        # we can't do that with factory.create('ns0:quantity')
+        #
+        # See also:
+        # https://stackoverflow.com/questions/13103023/how-can-i-assign-a-value-to-a-factory-created-simpletype-object-with-python-suds
 
-        element = Element('ns0:quantity')
+        # make sure the namespace is set to the correct one
+        metadata = factory.resolver.find('ns0:quantity')
+        element = Element("quantity", ns=metadata.namespace())
+
         element.setText(str(self.value))
         element.set('unitOfMeasure', self.unit)
         return element
