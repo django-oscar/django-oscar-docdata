@@ -1,8 +1,8 @@
 import logging
-from optparse import make_option
-from django.core.management.base import BaseCommand, CommandError
 
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+
 from oscar_docdata.exceptions import DocdataStatusError
 from oscar_docdata.facade import get_facade
 from oscar_docdata.models import DocdataOrder
@@ -10,13 +10,14 @@ from oscar_docdata.models import DocdataOrder
 
 class Command(BaseCommand):
     help = "Update the status of the given orders"
-    option_list = (
-        make_option('--all', action='store_true', dest='all', default=False,
-            help="Update all orders"),
-        make_option('--status', action='store', dest='status', default=None,
-            help="Update all orders of a given status"),
-    ) + BaseCommand.option_list
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+
+        parser.add_argument("--all", action="store_true", dest="all", default=False, help="Update all orders")
+        parser.add_argument(
+            "--status", action="store", dest="status", default=None, help="Update all orders of a given status"
+        )
 
     def handle(self, *args, **options):
         """
@@ -36,6 +37,9 @@ class Command(BaseCommand):
 
         if do_all:
             orders = qs.all()
+
+            order_count = orders.count()
+            self.stdout.write("There are %i orders." % order_count)
 
             if only_status:
                 orders = orders.filter(status=only_status)
@@ -59,6 +63,8 @@ class Command(BaseCommand):
                         self.stderr.write(u"- Order {0} does not have status {1}, but {2}\n".format(order_number, only_status, order.status))
                         continue
                     orders.append(order)
+
+            self.stdout.write("Collect %i orders." % len(orders))
 
         for order in orders:
             self.stdout.write(u"- Checking {0}\n".format(order.merchant_order_id))
