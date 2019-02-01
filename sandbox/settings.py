@@ -168,6 +168,8 @@ APPEND_SLASH = True
 
 OSCAR_ALLOW_ANON_CHECKOUT = True
 
+OSCAR_DEFAULT_CURRENCY = "EUR"
+
 # Haystack settings
 HAYSTACK_CONNECTIONS = {
     'default': {
