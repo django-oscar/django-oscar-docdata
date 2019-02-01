@@ -109,11 +109,8 @@ class Facade(Interface):
         if not profile:
             profile = appsettings.DOCDATA_PROFILE
 
-        # a first name and last name are mandatory at docdata
-        if user.is_anonymous:
-            name = Name(first="-", last="-")
-        else:
-            name = Name(first=user.first_name or "-", last=user.last_name or "-")
+        # a first name, last name and email are mandatory at docdata
+        name = Name(first=user.first_name or "-", last=user.last_name or "-")
 
         args = dict(
             order_id=order_number,
@@ -139,9 +136,9 @@ class Facade(Interface):
             # Auto fill in these fields if they are not provided.
             # These fields are not required in Oscar, but Docdata requires them.
             if not bill_to.name.first:
-                bill_to.name.first = user.first_name
+                bill_to.name.first = name.first
             if not bill_to.name.last:
-                bill_to.name.last = user.last_name
+                bill_to.name.last = name.last
 
             args['bill_to'] = bill_to
 
@@ -152,14 +149,13 @@ class Facade(Interface):
             # Auto fill in these fields if they are not provided.
             # These fields are not required in Oscar, but Docdata requires them.
             if not invoice.ship_to.name.first:
-                invoice.ship_to.name.first = user.first_name
+                invoice.ship_to.name.first = name.first
             if not invoice.ship_to.name.last:
-                invoice.ship_to.name.last = user.last_name
+                invoice.ship_to.name.last = name.last
 
             args['invoice'] = invoice
 
         return args
-
 
     def order_status_changed(self, docdataorder, old_status, new_status):
         """
