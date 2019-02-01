@@ -1,4 +1,7 @@
 import logging
+
+import os
+
 from django.dispatch import receiver
 from django.http import HttpRequest
 from django.utils import translation
@@ -37,6 +40,14 @@ class CustomDocdataFacade(Facade):
         # Though this should be the shipping address,
         # using the billing address here because Docdata reads that field.
         # Seriously. This is messed up.
+
+        # The following is an option so you can test the sandbox with unique
+        # merchant numbers without overriding the complete order application.
+        # Docdata expects unique merchant order numbers, but they don't do
+        # anything with it so you can send here any number you like. The
+        # callback from docdata is working with docdata references, not
+        # with merchant order id's
+        api_args['order_id'] += int(os.environ.get('DOCDATA_ORDER_ID_START', '0'))
         api_args['invoice'].ship_to = api_args['bill_to']
 
         return api_args
