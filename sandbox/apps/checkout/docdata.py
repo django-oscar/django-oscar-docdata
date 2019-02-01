@@ -1,4 +1,7 @@
 import logging
+
+import os
+
 from django.dispatch import receiver
 from django.http import HttpRequest
 from django.utils import translation
@@ -16,6 +19,7 @@ PaymentEventType = get_model('order', 'PaymentEventType')
 PaymentEvent = get_model('order', 'PaymentEvent')
 PaymentEventQuantity = get_model('order', 'PaymentEventQuantity')
 EventHandler = get_class('order.processing', 'EventHandler')
+OrderPlacementMixin = get_class('checkout.mixins', 'OrderPlacementMixin')
 
 
 class CustomDocdataFacade(Facade):
@@ -36,6 +40,14 @@ class CustomDocdataFacade(Facade):
         # Though this should be the shipping address,
         # using the billing address here because Docdata reads that field.
         # Seriously. This is messed up.
+
+        # The following is an option so you can test the sandbox with unique
+        # merchant numbers without overriding the complete order application.
+        # Docdata expects unique merchant order numbers, but they don't do
+        # anything with it so you can send here any number you like. The
+        # callback from docdata is working with docdata references, not
+        # with merchant order id's
+        api_args['order_id'] += int(os.environ.get('DOCDATA_ORDER_ID_START', '0'))
         api_args['invoice'].ship_to = api_args['bill_to']
 
         return api_args
@@ -121,14 +133,13 @@ def _on_order_status_updated(order, **kwargs):
 
         # For late change to paid, still send confirmation email.
         request = HttpRequest()
-        _send_confirmation_message_once(request, order)
+        send_confirmation_message(request, order)
     elif order.status == DocdataOrder.STATUS_CHARGED_BACK:
         add_payment_event(oscar_order, "charged-back", order.total_charged_back, reference=order.order_key)
     elif order.status == DocdataOrder.STATUS_REFUNDED:
         add_payment_event(oscar_order, "refunded", order.total_refunded, reference=order.order_key)
     elif order.status == DocdataOrder.STATUS_CANCELLED:
         add_payment_event(oscar_order, "cancelled", order.total_registered, reference=order.order_key)
-
 
 
 @receiver(signals.return_view_called)
@@ -143,22 +154,29 @@ def _on_return_view_called(request, order, callback, **kwargs):
         logger.info("Received {0} state at return view, cancelling order {1}".format(callback, order.merchant_order_id))
         order.cancel()
     else:
-        _send_confirmation_message_once(request, order)
+        send_confirmation_message(request, order)
 
 
-def _send_confirmation_message_once(request, docdata_order):
+class SendConfirmationEmail(OrderPlacementMixin):
     """
-    Send a confirmation message.
+    Sending the confirmation email is deferred after payment. Using
+    the OrderPlacementMixin class makes sure we use oscars
+    send_confirmation_message
     """
+    def __init__(self, request):
+        self.request = request
+
+
+def send_confirmation_message(request, docdata_order):
     # Don't continue as anonymous Docdata API user, but the user related to the order.
     # The send_confirmation_message() also expects request.user to be there.
     oscar_order = Order.objects.get(number=docdata_order.merchant_order_id)
     request.user = oscar_order.user
+    logger.info("Sending order confirmation for {0}".format(oscar_order.number))
 
-    from .email import send_confirmation_message_once
     with translation.override(docdata_order.language):
-        # Send only once!
-        send_confirmation_message_once(request, oscar_order)
+        SendConfirmationEmail(request).send_confirmation_message(
+            oscar_order, 'ORDER_PLACED')
 
 
 def add_payment_event(order, event_type_name, amount, reference=''):

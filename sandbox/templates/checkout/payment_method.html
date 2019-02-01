@@ -3,21 +3,29 @@
 
 {% block checkout_title %}{{ form.payment_method.label }}{% endblock %}
 
+{% block checkout_nav %}
+    {% include 'checkout/nav.html' with step=3 %}
+{% endblock %}
 
 {% block content %}
+    <div class="well">
     {% if error %}
         <div class="alert alert-error">
             {{ error }}
         </div>
     {% endif %}
 
-    <form action="" method="post">
+    <form action="" method="post" class="form form-horizontal">
         {% csrf_token %}
 
         {% if form.payment_method.errors %}{{ form.payment_method.errors }}{% endif %}
-        {{ form.payment_method }}
+            {% for radio in form.payment_method %}
+                <div>
+                    {{ radio }}
+                </div>
+            {% endfor %}
 
         <p><button type="submit" class="btn btn-large btn-primary">{% trans "Continue to confirmation" %}</button>
-
     </form>
+    </div>
 {% endblock %}
