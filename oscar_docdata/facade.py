@@ -101,8 +101,6 @@ class Facade(Interface):
 
         return order_key
 
-
-
     def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=None, **kwargs):
         """
         The arguments for the createpayment call.
@@ -111,15 +109,18 @@ class Facade(Interface):
         if not profile:
             profile = appsettings.DOCDATA_PROFILE
 
+        # a first name and last name are mandatory at docdata
+        if user.is_anonymous:
+            name = Name(first="-", last="-")
+        else:
+            name = Name(first=user.first_name or "-", last=user.last_name or "-")
+
         args = dict(
             order_id=order_number,
             total_gross_amount=Amount(total.incl_tax, total.currency),
             shopper=Shopper(
                 id=user.id,
-                name=Name(
-                    first=user.first_name or "-",
-                    last=user.last_name or "-"
-                ),
+                name=name,
                 email=user.email,
                 language=to_iso639_part1(language or get_language()),
                 gender='U'
