@@ -3,6 +3,9 @@
 
 {% block checkout_title %}{{ form.payment_method.label }}{% endblock %}
 
+{% block checkout_nav %}
+    {% include 'checkout/nav.html' with step=3 %}
+{% endblock %}
 
 {% block content %}
     <div class="well">
