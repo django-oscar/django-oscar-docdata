@@ -16,7 +16,7 @@ from oscar_docdata.exceptions import InvalidMerchant
 from oscar_docdata.gateway import DocdataClient
 from oscar_docdata.models import DocdataOrder, DocdataPayment
 from oscar_docdata.signals import order_status_changed, payment_added, payment_updated
-
+from six import text_type
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +165,7 @@ class Interface(object):
         :type order: DocdataOrder
         """
         # Backwards compatibility fix, old parameter was named "order_key".
-        if isinstance(order, basestring):
+        if isinstance(order, text_type):
             order = DocdataOrder.objects.select_for_update().active_merchants().get(order_key=order)
 
         amount = None
