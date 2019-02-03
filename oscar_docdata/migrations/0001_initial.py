@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='docdatapayment',
             name='docdata_order',
-            field=models.ForeignKey(related_name='payments', on_delete=models.CASCADE, to='oscar_docdata.DocdataOrder'),
+            field=models.ForeignKey(related_name='payments', on_delete=models.deletion.PROTECT, to='oscar_docdata.DocdataOrder'),
             preserve_default=True,
         ),
         migrations.AddField(
