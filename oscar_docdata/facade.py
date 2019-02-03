@@ -5,8 +5,8 @@ import logging
 from django.utils.translation import get_language
 from oscar.apps.order.exceptions import InvalidOrderStatus
 from oscar.apps.payment.exceptions import PaymentError
+from oscar.core.loading import get_model
 from oscar_docdata import appsettings
-from oscar_docdata.compat import get_model
 from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Amount, to_iso639_part1, Invoice
 from oscar_docdata.interface import Interface
