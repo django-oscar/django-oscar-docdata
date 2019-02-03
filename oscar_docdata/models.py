@@ -1,17 +1,11 @@
 from __future__ import unicode_literals
 from django.utils.encoding import python_2_unicode_compatible
 
-
 from decimal import Decimal as D
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from oscar_docdata.managers import DocdataOrderManager
 from . import appsettings
-
-try:
-    from polymorphic.models import PolymorphicModel  # django-polymorphic 0.8
-except ImportError:
-    from polymorphic import PolymorphicModel
 
 
 @python_2_unicode_compatible
@@ -102,7 +96,7 @@ class DocdataOrder(models.Model):
 
 
 @python_2_unicode_compatible
-class DocdataPayment(PolymorphicModel):
+class DocdataPayment(models.Model):
     """
     A reported Docdata payment.
     This is a summarized version of a Docdata payment transaction,
@@ -137,24 +131,3 @@ class DocdataPayment(PolymorphicModel):
         ordering = ('payment_id',)
         verbose_name = _("Payment")
         verbose_name_plural = _("Payments")
-
-
-# NOTE: currently unused.
-# DirectDebit is used for periodic transfers (e.g. "Automatische incasso" in The Netherlands)
-class DocdataDirectDebitPayment(DocdataPayment):
-    """
-    Web direct debit direct payment.
-    """
-    holder_name = models.CharField(max_length=35)  # max_length from Docdata
-    holder_city = models.CharField(max_length=35)  # max_length from Docdata
-    holder_country_code = models.CharField(_("Country_code"), max_length=2, null=True, blank=True)
-
-    # Note: there is django-iban for validated versions of these fields.
-    # Not needed here.
-    iban = models.CharField(max_length=34)
-    bic = models.CharField(max_length=11)
-
-    class Meta:
-        ordering = ('-created', '-updated')
-        verbose_name = _("Direct Debit Payment")
-        verbose_name_plural = _("Derect Debit Payments")
