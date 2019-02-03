@@ -2,7 +2,7 @@ import os
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from oscar import get_core_apps, OSCAR_MAIN_TEMPLATE_DIR
-from oscar.defaults import *
+from oscar.defaults import *  # noqa
 
 PROJECT_DIR = os.path.dirname(__file__)
 location = lambda x: os.path.join(os.path.dirname(os.path.realpath(__file__)), x)  # noqa

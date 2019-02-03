@@ -1,8 +1,11 @@
 import logging
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, HttpResponse, HttpResponseNotFound, Http404, \
-    HttpResponseServerError
+
+from django.http import (
+    HttpResponseBadRequest, HttpResponseRedirect, HttpResponse,
+    HttpResponseNotFound, Http404, HttpResponseServerError)
 from django.utils import translation
 from django.views.generic import View
+
 from oscar_docdata import appsettings
 from oscar_docdata.compat import transaction_atomic
 from oscar_docdata.exceptions import DocdataStatusError
@@ -173,7 +176,7 @@ class StatusChangedNotificationView(UpdateOrderMixin, View):
                     content_type='text/plain; charset=utf-8'
                 )
 
-        responses = status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
+        status_changed_view_called.send(sender=self.__class__, request=request, order=self.order)
 
         # Return 200 as required by DocData when the status changed notification was consumed.
         return HttpResponse(u"ok, order {0} updated\n".format(order_key), content_type='text/plain; charset=utf-8')
