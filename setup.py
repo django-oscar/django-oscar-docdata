@@ -74,5 +74,12 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Office/Business :: Financial',
         'Topic :: Software Development :: Libraries :: Python Modules',
-    ]
+    ],
+    extras_require={
+        'dev': [
+            'wheel',
+            'twine',
+            'flake8'
+        ],
+    }
 )
