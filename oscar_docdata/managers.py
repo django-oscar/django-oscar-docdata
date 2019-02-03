@@ -2,7 +2,6 @@ from . import appsettings
 from django.db import models
 from django.db.models.query import QuerySet
 from six import iterkeys
-import django
 
 
 class DocdataOrderQuerySet(QuerySet):
@@ -46,11 +45,6 @@ class DocdataOrderManager(models.Manager):
 
     def get_queryset(self):
         return self.queryset_class(self.model, using=self._db)
-
-    if django.VERSION < (1, 6):
-        # For Django 1.5
-        def get_query_set(self):
-            return self.queryset_class(self.model, using=self._db)
 
     def active_merchants(self):
         """
