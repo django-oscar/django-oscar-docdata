@@ -81,7 +81,9 @@ setup(
             'twine',
             'flake8',
             'pytest<5',
-            'pytest-django'
+            'pytest-django',
+            'pytest-mock',
+            'django-webtest'
         ],
     }
 )
