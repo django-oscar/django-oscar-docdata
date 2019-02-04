@@ -2,7 +2,7 @@ django-oscar-docdata
 ====================
 
 Payment gateway integration for `Docdata Payments <http://www.docdatapayments.com/>`_ in django-oscar_.
-DocData Payments is a large payment gateway based in The Netherlands that supports more then 40 international payment methods.
+DocData Payments is a large payment gateway based in The Netherlands that supports more than 40 international payment methods.
 
 .. _django-oscar: https://github.com/tangentlabs/django-oscar
 
@@ -39,11 +39,11 @@ Add to ``urls.py``:
 
 .. code-block:: python
 
-    from oscar_docdata.dashboard.app import application as docdata_app
+    from oscar_docdata.dashboard.app import application as docdata_dashboard_app
 
     urlpatterns += [
         url(r'^api/docdata/', include('oscar_docdata.urls')),
-        url(r'^dashboard/docdata/', include(docdata_app.urls)),
+        url(r'^dashboard/docdata/', include(docdata_dashboard_app.urls)),
     ]
 
 Add to ``settings.py``:
@@ -55,32 +55,15 @@ Add to ``settings.py``:
         'url_name': 'docdata-order-list',
     })
 
-As recommendation, temporary log all events from this package as well:
+While developing, enabling logging for `suds` and `oscar_docdata` is recommended to see
+detailed information:
 
 .. code-block:: python
 
     LOGGING = {
         # ...
-
-        'filters': {
-            'require_debug_false': {
-                '()': 'django.utils.log.RequireDebugFalse',
-            }
-        },
-        'handlers': {
-            'mail_admins': {
-                'level': 'ERROR',
-                'filters': ['require_debug_false'],
-                'class': 'django.utils.log.AdminEmailHandler'
-            },
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-            },
-        },
         'loggers': {
             # ...
-
             'suds.transport': {
                 'handlers': ['console'],
                 'level': 'DEBUG',
@@ -114,9 +97,10 @@ Integration into your project
 -----------------------------
 
 Please view the `sandbox application`_ how to integrate the application.
-This includes the project-specific desisions such as:
+This includes the project-specific decisions such as:
 
 * How to create payment events.
+* How to create a custom facade class
 * Which fields to map to the "house number" field. (e.g. ``line2``, ``line3`` or a custom field).
 * Whether to cancel an order when the customer aborted the payment.
 * When to submit confirmation emails.
@@ -127,25 +111,25 @@ Running the Sandbox application
 
 It is possible to run the `sandbox application`_ to test this package and to see if your
 Docdata credentials work. You can set the `DOCDATA_MERCHANT_NAME` and the `DOCDATA_MERCHANT_PASSWORD`
-environment variables before running `manage.py`::
+environment variables before running `manage.py`:
 
-    cd sandbox
+.. code-block:: bash
 
     # creates a local sqlite database
-    ./manage.py migrate
+    ./sandbox/manage.py migrate
 
     # loads some sample products (books)
-    ./manage.py oscar_import_catalogue fixtures/books.csv
+    ./sandbox/manage.py oscar_import_catalogue sandbox/fixtures/books.csv
 
-    # so you can fill out ypur shipping address
-    ./manage.py loaddata fixtures/countries.json
+    # so you can fill out your shipping address
+    ./sandbox/manage.py loaddata fixtures/countries.json
 
     # run the sandbox installation with the docdata merchant username and passord
-    DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant ./manage.py runserver
+    DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant ./sandbox/manage.py runserver
 
-Docdata is really keen on having unique merchant order id's Why is not really clear as they don't
-use this references (they use their own). While testing it can happen dat you run into an error
-about unique merchant order id's. In that case you can set the following environment variable::
+Docdata is really keen on having unique merchant order ids. Why is not really clear as they don't
+use this references (they use their own). While testing it can happen that you run into an error
+about unique merchant order ids. In that case you can set the following environment variable::
 
     # just a number which will be added to the submitted order id
     DOCDATA_ORDER_ID_START=99999
@@ -153,7 +137,7 @@ about unique merchant order id's. In that case you can set the following environ
 Configuration of the Docdata Backoffice
 ---------------------------------------
 
-Make sure the following settings are filled in:
+Make sure the following settings are configured:
 
 * The "Payment Method names" need to be added to a profile (default value of ``DOCDATA_PROFILE`` is "standard").
 * The notification URL and return URL need to be set. Example values:
@@ -171,13 +155,13 @@ Caveats
 While working with the Docdata 1.0 and 1.2 API, we found the following limitations:
 
 * Address fields are oriented towards Dutch address standards.
-  Passing international addressfields is hard, or requires hacking, for example:
+  Passing international address fields is hard, or requires hacking, for example:
 
  * Faking the house number (because the US address fields have no official field for that).
  * Streets have a limit of 35 characters, so the "Address Line 1" should be truncated.
 
 * Passing invalid address fields could cause PayPal, VISA or MasterCard transactions to fail.
-* PayPal payments may fail when the "state" field is invalid (e.g. because of a typoo). This is a check done by PayPal. Docdata however, passes that responsibility to the merchant (you).
+* PayPal payments may fail when the "state" field is invalid (e.g. because of a typo). This is a check done by PayPal. Docdata however, passes that responsibility to the merchant (you).
 * The ``<billTo><address><state>`` field is typically ignored. Provide it via ``<invoice><shipTo><address><state>``. Seriously.
 * The individual payment objects have a status value, but the payment cluster does not.
   This means that there is no global status value to read.
