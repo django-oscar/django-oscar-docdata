@@ -1,5 +1,5 @@
 from oscar.apps.checkout import app
-from apps.checkout import views
+from sandbox.apps.checkout import views
 
 
 class CheckoutApplication(app.CheckoutApplication):

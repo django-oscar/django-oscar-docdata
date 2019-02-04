@@ -107,7 +107,7 @@ MIDDLEWARE = (
     'oscar.apps.basket.middleware.BasketMiddleware',
 )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'sandbox.urls'
 
 LOGGING = {
     'version': 1,
@@ -126,12 +126,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG' if DEBUG is True else 'INFO',
         },
-
         'oscar_docdata': {
             'handlers': ['console'],
             'level': 'DEBUG' if DEBUG is True else 'INFO',
         },
-
     },
 }
 
@@ -150,7 +148,7 @@ INSTALLED_APPS = [
 ]
 
 # our custom checkout app with docdata payment selection views
-INSTALLED_APPS += get_core_apps(['apps.checkout'])
+INSTALLED_APPS += get_core_apps(['sandbox.apps.checkout'])
 
 AUTHENTICATION_BACKENDS = (
     'oscar.apps.customer.auth_backends.EmailBackend',
