@@ -79,7 +79,9 @@ setup(
         'dev': [
             'wheel',
             'twine',
-            'flake8'
+            'flake8',
+            'pytest<5',
+            'pytest-django'
         ],
     }
 )
