@@ -2,15 +2,16 @@
 Bridging module between Oscar and the gateway module (which is Oscar agnostic)
 """
 import logging
+import importlib
+
 from django.utils.translation import get_language
 from oscar.apps.order.exceptions import InvalidOrderStatus
 from oscar.apps.payment.exceptions import PaymentError
+from oscar.core.loading import get_model
 from oscar_docdata import appsettings
-from oscar_docdata.compat import get_model
 from oscar_docdata.exceptions import DocdataCreateError
 from oscar_docdata.gateway import Name, Shopper, Destination, Amount, to_iso639_part1, Invoice
 from oscar_docdata.interface import Interface
-from oscar_docdata.utils.load import import_class
 
 __all__ = (
     'get_facade',
@@ -55,7 +56,8 @@ def get_facade_class():
         return _FacadeClass
 
     # Import it.
-    _FacadeClass = import_class(appsettings.DOCDATA_FACADE_CLASS, 'DOCDATA_FACADE_CLASS')
+    mod_name, class_name = appsettings.DOCDATA_FACADE_CLASS.rsplit('.', 1)
+    _FacadeClass = getattr(importlib.import_module(mod_name), class_name)
     return _FacadeClass
 
 
