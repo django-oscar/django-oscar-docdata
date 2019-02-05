@@ -83,6 +83,7 @@ setup(
             'pytest<5',
             'pytest-django',
             'pytest-mock',
+            'pytest-env',
             'django-webtest'
         ],
     }
