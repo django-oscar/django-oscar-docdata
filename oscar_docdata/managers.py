@@ -47,7 +47,7 @@ class DocdataOrderManager(models.Manager):
     def get_queryset(self):
         return self.queryset_class(self.model, using=self._db)
 
-    if django.VERSION < (1,6):
+    if django.VERSION < (1, 6):
         # For Django 1.5
         def get_query_set(self):
             return self.queryset_class(self.model, using=self._db)

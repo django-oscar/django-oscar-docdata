@@ -1,5 +1,4 @@
 from datetime import datetime
-from optparse import make_option
 
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError

@@ -63,6 +63,7 @@ __all__ = (
 
 CACHED_CLIENT = {}
 
+
 def get_suds_client(testing_mode=False):
     """
     Create the suds client to connect to docdata.
@@ -104,15 +105,6 @@ class DocdataAPIVersionPlugin(suds.plugin.MessagePlugin):
         body = context.envelope.getChild('Body')
         request = body[0]
         request.set('version', '1.2')
-
-
-#class DocdataBrokenWSDLPlugin(suds.plugin.DocumentPlugin):
-#    def parsed(self, context):
-#        """ Called after parsing a WSDL or XSD document. The context contains the url & document root. """
-#        # The WSDL for the live payments API incorrectly references the wrong location.
-#        if len(context.document.children) == 19 and len(context.document.children[18]) > 0:
-#            location_attribute = context.document.children[18].children[0].getChild('address').attributes[0]
-#            location_attribute.setValue('https://secure.docdatapayments.com:443/ps/services/paymentservice/1_0')
 
 
 def log_docdata_error(soap_error, message, *args, **kwargs):
@@ -191,7 +183,6 @@ class DocdataClient(object):
     PAYMENT_METHOD_BANK_TRANSFER = 'BANK_TRANSFER'
     PAYMENT_METHOD_ELV = 'ELV'
 
-
     def __init__(self, testing_mode=None, merchant_name=None, merchant_password=None):
         """
         Initialize the client.
@@ -260,7 +251,8 @@ class DocdataClient(object):
         """
         return self.merchant._name
 
-    def create(self,
+    def create(
+            self,
             order_id,
             total_gross_amount,
             shopper,
@@ -271,7 +263,7 @@ class DocdataClient(object):
             includeCosts=False,
             profile=appsettings.DOCDATA_PROFILE,
             days_to_pay=appsettings.DOCDATA_DAYS_TO_PAY,
-        ):
+    ):
         """
         Create the payment in docdata.
 
@@ -352,7 +344,6 @@ class DocdataClient(object):
         else:
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
 
-
     def start(self, order_key, payment, payment_method=None, amount=None):
         """
         The start operation is used for starting a (web direct) payment on an order.
@@ -400,7 +391,6 @@ class DocdataClient(object):
         else:
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
 
-
     def cancel(self, order_key):
         """
         The cancel command is used for canceling a previously created payment,
@@ -420,7 +410,6 @@ class DocdataClient(object):
         else:
             logger.error("Unexpected response node from docdata!")
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not cancelled.')
-
 
     def status(self, order_key):
         """
@@ -475,7 +464,6 @@ class DocdataClient(object):
             logger.error("Unexpected response node from docdata!")
             raise NotImplementedError('Received unknown reply from DocData. No status processed from Docdata.')
 
-
     def status_extended(self, order_key):
         """
         Request the status with extended information.
@@ -498,7 +486,6 @@ class DocdataClient(object):
         else:
             logger.error("Unexpected response node from docdata!")
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
-
 
     def get_payment_menu_url(self, request, order_key, return_url=None, client_language=None, **extra_url_args):
         """
@@ -529,7 +516,7 @@ class DocdataClient(object):
             url_format = '{0}?callback={callback}&order_id={order_id}'
 
         # Make sure URLs are absolute.
-        if not '://' in return_url or return_url.startswith('/'):
+        if '://' not in return_url or return_url.startswith('/'):
             return_url = request.build_absolute_uri(return_url)
 
         args = {
@@ -548,7 +535,6 @@ class DocdataClient(object):
             return 'https://test.docdatapayments.com/ps/menu?' + urlencode(args)
         else:
             return 'https://secure.docdatapayments.com/ps/menu?' + urlencode(args)
-
 
 
 class CreateReply(object):
@@ -730,7 +716,6 @@ class Address(object):
         self.company = company
         self.vatNumber = vatNumber
         self.careOf = careOf
-        #self.kvkNummer    # rant: seriously? a Netherlands-specific field in the API?
 
     @classmethod
     def from_address(cls, address):
@@ -761,7 +746,7 @@ class Address(object):
 
         node = factory.create('ns0:address')
         node.street = text_type(self.street)
-        node.houseNumber = text_type(self.house_number)  #string35
+        node.houseNumber = text_type(self.house_number)   # string35
         node.houseNumberAddition = text_type(self.house_number_addition) if self.house_number_addition else None
         node.postalCode = text_type(self.postal_code.replace(' ', ''))  # Spaces aren't allowed in the Docdata postal code (type=NMTOKEN)
         node.city = text_type(self.city)

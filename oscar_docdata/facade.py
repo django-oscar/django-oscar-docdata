@@ -8,7 +8,7 @@ from oscar.apps.payment.exceptions import PaymentError
 from oscar_docdata import appsettings
 from oscar_docdata.compat import get_model
 from oscar_docdata.exceptions import DocdataCreateError
-from oscar_docdata.gateway import Name, Shopper, Destination, Address, Amount, to_iso639_part1, Invoice, Vat, Item
+from oscar_docdata.gateway import Name, Shopper, Destination, Amount, to_iso639_part1, Invoice
 from oscar_docdata.interface import Interface
 from oscar_docdata.utils.load import import_class
 
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 Order = None
 SourceType = None
 _FacadeClass = None
+
 
 def _lazy_get_models():
     # This avoids various import conflicts between apps that may
@@ -56,7 +57,6 @@ def get_facade_class():
     # Import it.
     _FacadeClass = import_class(appsettings.DOCDATA_FACADE_CLASS, 'DOCDATA_FACADE_CLASS')
     return _FacadeClass
-
 
 
 class Facade(Interface):
@@ -186,7 +186,6 @@ class Facade(Interface):
 
         # Send the signal
         super(Facade, self).order_status_changed(docdataorder, old_status, new_status)
-
 
     def get_source_type(self):
         """

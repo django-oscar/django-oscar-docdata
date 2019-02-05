@@ -1,12 +1,13 @@
 import logging
-
 import os
 
 from django.dispatch import receiver
 from django.http import HttpRequest
 from django.utils import translation
+
 from oscar.apps.payment.abstract_models import AbstractTransaction
 from oscar.core.loading import get_class, get_model
+
 from oscar_docdata import signals
 from oscar_docdata.facade import Facade
 from oscar_docdata.models import DocdataOrder
@@ -121,19 +122,18 @@ def _on_order_status_updated(order, **kwargs):
 
     # Show relevant docdata events in Oscar Dashboard too.
     oscar_order = Order.objects.get(number=order.merchant_order_id)
+
     if order.status == DocdataOrder.STATUS_PAID:
         add_payment_event(oscar_order, "paid", order.total_captured, reference=order.order_key)
 
-        # Pass the entire control to the eventhandler,
-        # so there is a central location for updating this.
-        # TODO: This can also send a "payment received" confirmation email.
-        #       and send
+        # Notify the eventhandler that the status was changed.
         ev = EventHandler(user=None)
         ev.handle_order_status_change(oscar_order, "paid")
 
-        # For late change to paid, still send confirmation email.
+        # Send confirmation email
         request = HttpRequest()
         send_confirmation_message(request, order)
+
     elif order.status == DocdataOrder.STATUS_CHARGED_BACK:
         add_payment_event(oscar_order, "charged-back", order.total_charged_back, reference=order.order_key)
     elif order.status == DocdataOrder.STATUS_REFUNDED:
@@ -153,8 +153,6 @@ def _on_return_view_called(request, order, callback, **kwargs):
     if callback in ('CANCELLED', 'ERROR'):
         logger.info("Received {0} state at return view, cancelling order {1}".format(callback, order.merchant_order_id))
         order.cancel()
-    else:
-        send_confirmation_message(request, order)
 
 
 class SendConfirmationEmail(OrderPlacementMixin):

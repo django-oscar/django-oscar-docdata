@@ -43,7 +43,6 @@ class Interface(object):
         DocdataClient.STATUS_CLOSED_CANCELLED: DocdataOrder.STATUS_CANCELLED,
     }
 
-
     def __init__(self, testing_mode=None, merchant_name=None, merchant_password=None):
         """
         Initialize the interface.
@@ -53,8 +52,6 @@ class Interface(object):
             testing_mode = appsettings.DOCDATA_TESTING
         self.testing_mode = testing_mode
         self.client = DocdataClient(testing_mode, merchant_name=merchant_name, merchant_password=merchant_password)
-
-
 
     @classmethod
     def for_merchant(cls, merchant_name, testing_mode=None):
@@ -75,7 +72,6 @@ class Interface(object):
             merchant_name=merchant_name,
             merchant_password=password
         )
-
 
     def create_payment(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, merchant_name=None, **kwargs):
         """
@@ -126,14 +122,12 @@ class Interface(object):
         # Return for further reference
         return createsuccess.order_key
 
-
     def get_create_payment_args(self, order_number, total, user, language=None, description=None, profile=appsettings.DOCDATA_PROFILE, **kwargs):
         """
         The arguments to pass to create a payment.
         This is implementation-specific, hence not implemented here.
         """
         raise NotImplementedError("Missing get_create_payment_args() implementation!")
-
 
     def _store_create_success(self, merchant_name, order_number, order_key, amount, language, country_code):
         """
@@ -149,7 +143,6 @@ class Interface(object):
             country=country_code
         )
 
-
     def get_payment_menu_url(self, request, order_key, return_url=None, client_language=None, **extra_url_args):
         """
         Return the URL to the payment menu,
@@ -158,7 +151,6 @@ class Interface(object):
         For more information, see :func:`DocdataClient.get_payment_menu_url`.
         """
         return self.client.get_payment_menu_url(request, order_key, return_url=return_url, client_language=client_language, **extra_url_args)
-
 
     def start_payment(self, order, payment, payment_method=None):
         """
@@ -183,7 +175,6 @@ class Interface(object):
         # Return for further reference.
         return startsuccess.payment_id
 
-
     def cancel_order(self, order):
         """
         Cancel the order.
@@ -196,7 +187,6 @@ class Interface(object):
         # Also make sure the order will be marked as cancelled.
         statusreply = client.status(order.order_key)  # Can bail out with an exception (already logged)
         self._store_report(order, statusreply.report, indented_status=DocdataOrder.STATUS_CANCELLED)
-
 
     def update_order(self, order):
         """
@@ -213,7 +203,6 @@ class Interface(object):
 
         # Store the new status
         self._store_report(order, statusreply.report)
-
 
     def _store_report(self, order, report, indented_status=None):
         """
@@ -240,11 +229,11 @@ class Interface(object):
             # There are only status codes for the payment (which corresponds with a payment attempts by the user).
             # Make our best efforts here, based on some heuristics of the approximateTotals field.
             if totals.totalShopperPending == 0 \
-            and totals.totalAcquirerPending == 0 \
-            and totals.totalAcquirerApproved == 0 \
-            and totals.totalCaptured == 0 \
-            and totals.totalRefunded == 0 \
-            and totals.totalChargedback == 0:
+                    and totals.totalAcquirerPending == 0 \
+                    and totals.totalAcquirerApproved == 0 \
+                    and totals.totalCaptured == 0 \
+                    and totals.totalRefunded == 0 \
+                    and totals.totalChargedback == 0:
                 # Everything is 0, either started, cancelled or expired
                 if order.status == DocdataOrder.STATUS_CANCELLED:
                     new_status = order.status  # Stay in cancelled, don't become expired
@@ -275,7 +264,6 @@ class Interface(object):
         if status_changed:
             self.order_status_changed(order, old_status, order.status)
 
-
     def _set_status(self, order, new_status):
         """
         Changes the payment status to new_status and sends a signal about the change.
@@ -292,7 +280,6 @@ class Interface(object):
             return True
         else:
             return False
-
 
     def _store_report_lines(self, order, report):
         """
@@ -350,10 +337,9 @@ class Interface(object):
             else:
                 amount_allocated = 0
 
-
             # Now save the result into a DocdataPayment object.
             # Find or create the correct payment object for current report.
-            payment_class = DocdataPayment #TODO: self.id_to_model_mapping[order.payment_method_id]
+            payment_class = DocdataPayment  # TODO: self.id_to_model_mapping[order.payment_method_id]
             updated = False
             added = False
 
@@ -374,7 +360,8 @@ class Interface(object):
                     "Payment method from Docdata doesn't match saved payment method. "
                     "Storing the payment method received from Docdata for payment id {0}: {1}".format(
                         ddpayment.payment_id, payment.paymentMethod
-                ))
+                    )
+                )
                 ddpayment.payment_method = str(payment.paymentMethod)
                 updated = True
 
@@ -401,7 +388,7 @@ class Interface(object):
                 ))
 
                 if auth_status not in DocdataClient.DOCUMENTED_STATUS_VALUES \
-                and auth_status not in DocdataClient.SEEN_UNDOCUMENTED_STATUS_VALUES:
+                        and auth_status not in DocdataClient.SEEN_UNDOCUMENTED_STATUS_VALUES:
                     # Note: We continue to process the payment status change on this error.
                     logger.warn("Received unknown payment status from Docdata. payment={0}, status={1}".format(
                         payment.id, auth_status
@@ -422,7 +409,7 @@ class Interface(object):
                     logger.warn("Experienced concurrency issues with update-status, payment id {0}: {1}".format(payment.id))
 
                     # Overwrite existing object instead.
-                    #not needed, no impact on save: ddpayment._state.adding = False
+                    # not needed, no impact on save: ddpayment._state.adding = False
                     ddpayment.id = str(payment.id)
                     ddpayment.save()
                     added = False
@@ -436,7 +423,6 @@ class Interface(object):
 
             ddpayment_objects.append(ddpayment)
             setattr(ddpayment, '_source', payment)
-
 
         if new_status is None:
             # Didn't get a clearly detectable/conclusive status.
@@ -454,25 +440,15 @@ class Interface(object):
             # Even though the payment cluster is set to 'closed_expired',
             # Docdata doesn't expire the individual payment report lines.
             if order.status in (DocdataOrder.STATUS_EXPIRED, DocdataOrder.STATUS_CANCELLED) \
-            and new_status in (DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS):
+                    and new_status in (DocdataOrder.STATUS_NEW, DocdataOrder.STATUS_IN_PROGRESS):
                 new_status = order.status
-
-            # TODO Use status change log to investigate if these overrides are needed.
-            # # These overrides are really just guessing.
-            # latest_capture = authorization.capture[-1]
-            # if status == 'AUTHORIZED':
-            #     if hasattr(authorization, 'refund') or hasattr(authorization, 'chargeback'):
-            #         new_status = 'cancelled'
-            #     if latest_capture.status == 'FAILED' or latest_capture == 'ERROR':
-            #         new_status = 'failed'
-            #     elif latest_capture.status == 'CANCELLED':
-            #         new_status = 'cancelled'
 
         # Detect a nasty error condition that needs to be manually fixed.
         total_registered = int(totals.totalRegistered)
         total_gross_cents = int(order.total_gross_amount * 100)
         if new_status != DocdataOrder.STATUS_CANCELLED and total_registered != total_gross_cents:
-            logger.error("Payment cluster %s total: %s does not equal Total Registered: %s.",
+            logger.error(
+                "Payment cluster %s total: %s does not equal Total Registered: %s.",
                 order.order_key, total_gross_cents, total_registered
             )
 
@@ -480,7 +456,6 @@ class Interface(object):
         # So far, the payments can only be sorted by ID.
         ddpayment_objects.sort(key=lambda ddpayment: ddpayment.payment_id)
         return new_status, ddpayment_objects
-
 
     def _get_payment_sum(self, payment, xml_tag, success_status):
         """
@@ -497,7 +472,6 @@ class Interface(object):
                     logger.debug("{0} of {1} is marked as {2}, not adding to totals".format(tag.__class__.__name__.title(), payment.id, tag.status))
 
         return amount
-
 
     def _process_authorized_payment(self, order, report, payment):
         """
@@ -528,7 +502,6 @@ class Interface(object):
                 if margin >= totals.totalRegistered:
                     margin = 0
 
-
         # Integration Manual Order API 1.0 - Document version 1.0, 08-12-2012 - Page 33:
         #
         # Safe route: The safest route to check whether all payments were made is for the merchants
@@ -539,7 +512,6 @@ class Interface(object):
         #
         if totals.totalCaptured < (totals.totalRegistered - margin):
             return None
-
 
         # The single payment indicated there is a payment.
         # Now comparing the totals, to see whether the order was fully paid!
@@ -619,7 +591,6 @@ class Interface(object):
             new_status = DocdataOrder.STATUS_UNKNOWN
 
         return new_status
-
 
     def order_status_changed(self, docdataorder, old_status, new_status):
         """
