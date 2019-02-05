@@ -3,8 +3,16 @@ Changelog
 
 Version structure: the "1.2" refers to the Docdata API version.
 
-Version 1.2.12 (2019-01-09)
+
+Version 1.2.12 (Unreleased)
 ---------------------------
+
+* Added Python 3 and Django classifiers and wheel package
+* Dropped Django < 1.11 and added support for Django 1.11, 2.0 and 2.1
+* Fixed management commands to work with Django>=1.11
+* Cleanup and simplified sandbox application
+* Removed unused `django-polymorphic` dependency and cleanup up depending model
+
 
 * Added Python 3 trove classifiers and wheel package.
 
