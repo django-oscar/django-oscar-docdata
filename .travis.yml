@@ -1,0 +1,6 @@
+language: python
+
+dist: xenial
+
+script:
+    - echo "hello from travis"
