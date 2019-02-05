@@ -10,14 +10,9 @@ import sys
 # When creating the sdist, make sure the django.mo file also exists:
 if 'sdist' in sys.argv:
     os.chdir('oscar_docdata')
-    try:
-        from django.core import management
-        management.call_command('compilemessages', stdout=sys.stderr, verbosity=1)
-    except ImportError:
-        if 'sdist' in sys.argv:
-            raise
-    finally:
-        os.chdir('..')
+    from django.core import management
+    management.call_command('compilemessages', stdout=sys.stderr, verbosity=1)
+    os.chdir('..')
 
 
 def read(*parts):
