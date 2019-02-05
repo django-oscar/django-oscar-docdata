@@ -40,7 +40,6 @@ setup(
     install_requires=[
         'suds-jurko>=0.6',
         'django-oscar>=1.5',
-        'django-polymorphic>=2.0',
         'six>=1.10'
     ],
     description='Docdata Payments Gateway integration for django-oscar',
