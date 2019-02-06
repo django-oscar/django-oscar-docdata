@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 
-from oscar.core.loading import get_class, get_model
+from oscar.core.loading import get_model
 
 from oscar_docdata.gateway import DocdataAPIVersionPlugin
 
@@ -13,12 +13,11 @@ from .suds_transport import DocdataMockTransport
 
 User = get_user_model()
 
-Basket = get_model('basket', 'Basket')
 Country = get_model('address', 'Country')
-Product = get_model('catalogue', 'Product')
 UserAddress = get_model('address', 'UserAddress')
+SourceType = get_model('payment', 'SourceType')
 
-Selector = get_class('partner.strategy', 'Selector')
+pytest_plugins = "tests.fixtures"
 
 
 @pytest.fixture(scope="session")
@@ -40,6 +39,9 @@ def django_db_setup(django_db_setup, django_db_blocker):
             user=user, title="Mr", first_name="John", last_name="Doe", line1="Just a street 1",
             line4="Amsterdam", postcode="1111AA", country=Country.objects.get(pk="NL"))
 
+        # add a docdata payment sourcetype
+        SourceType.objects.create(name="Docdata Payments", code="docdata")
+
 
 @pytest.fixture(autouse=True)
 def mock_suds(mocker):
@@ -53,27 +55,3 @@ def mock_suds(mocker):
 
     # patch the CACHED_CLIENT so get_suds_client will return ours
     mocker.patch.dict("oscar_docdata.gateway.CACHED_CLIENT", {url: client})
-
-
-@pytest.fixture()
-def customer():
-    return User.objects.get(username="customer")
-
-
-@pytest.fixture()
-def django_app(django_app, customer):
-    django_app.set_user(customer.username)
-    return django_app
-
-
-@pytest.fixture()
-def book():
-    return Product.objects.get(title="Expert C Programming")
-
-
-@pytest.fixture()
-def basket(customer, book):
-    basket = Basket.objects.create(owner=customer)
-    basket.strategy = Selector().strategy(request=None, user=customer)
-    basket.add_product(book)
-    return basket
