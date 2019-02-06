@@ -14,6 +14,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
 
+        parser.add_argument(
+            "oscar_order_number", nargs='*', type=str, help="One or more oscar order number(s)")
         parser.add_argument("--all", action="store_true", dest="all", default=False, help="Update all orders")
         parser.add_argument(
             "--status", action="store", dest="status", default=None, help="Update all orders of a given status"
@@ -47,12 +49,9 @@ class Command(BaseCommand):
             if args:
                 raise CommandError("No order numbers have to be provided for --all")
         else:
-            if not args:
-                raise CommandError("Expected order numbers as argument")
-
             # First get all orders, check them.
             orders = []
-            for order_number in args:
+            for order_number in options["oscar_order_number"]:
                 try:
                     order = qs.get(merchant_order_id=order_number)
                 except DocdataOrder.DoesNotExist:
