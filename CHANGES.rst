@@ -13,9 +13,6 @@ Version 1.2.12 (2019-02-06)
 * Cleanup and simplified sandbox application
 * Removed unused `django-polymorphic` dependency and cleanup up depending model
 
-
-* Added Python 3 trove classifiers and wheel package.
-
 Version 1.2.11 (2018-03-07)
 ---------------------------
 
