@@ -1,3 +1,4 @@
+====================
 django-oscar-docdata
 ====================
 
@@ -5,6 +6,13 @@ Payment gateway integration for `Docdata Payments <http://www.docdatapayments.co
 DocData Payments is a large payment gateway based in The Netherlands that supports more than 40 international payment methods.
 
 .. _django-oscar: https://github.com/tangentlabs/django-oscar
+
+.. image:: https://travis-ci.org/django-oscar/django-oscar-docdata.svg?branch=master
+    :target: https://travis-ci.org/django-oscar/django-oscar-docdata
+
+.. image:: https://badge.fury.io/py/django-oscar-docdata.svg
+   :alt: Latest PyPi release
+   :target: https://pypi.python.org/pypi/django-oscar-docdata
 
 
 Installation
@@ -90,7 +98,6 @@ and they can receive status updates. Each key/value is a merchant-name/password 
 
 When no subaccounts are configured, only the orders submitted by the current merchant can be displayed in the admin.
 This supports a multi-tennant database structure, while each tennant only sees their own orders.
-
 
 
 Integration into your project

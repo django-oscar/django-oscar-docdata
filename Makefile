@@ -3,7 +3,9 @@
 clean:
 	find . -name '*.pyc' -delete
 	find . -name '__pycache__' -delete
-	find . -name '*.egg-info' -delete
+	rm -Rf *.egg-info
+	rm -Rf dist/
+	rm -Rf build/
 
 install:
 	pip install -e .[dev]
@@ -14,10 +16,7 @@ lint:
 test:
 	pytest
 
-clean_release: clean
-	if [ -d "dist" ]; then rm dist/*; fi
-
-build_release: clean_release
+build_release: clean
 	python setup.py sdist bdist_wheel
 
 publish_release_testpypi: build_release

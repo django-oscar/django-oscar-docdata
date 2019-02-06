@@ -1,5 +1,6 @@
+global-exclude *.*
+
 include AUTHORS
 include README.rst
 include LICENSE.rst
-recursive-include oscar_docdata/locale *.mo *.po
-recursive-include oscar_docdata/templates *.html
+graft oscar_docdata
