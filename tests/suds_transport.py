@@ -66,6 +66,31 @@ STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 </S:Envelope>
 """
 
+STATUS_EXPIRED_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope
+    xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <statusResponse
+            xmlns="http://www.docdatapayments.com/services/paymentservice/1_2/">
+            <statusSuccess>
+                <success code="SUCCESS">Operation successful.</success>
+                <report>
+                    <approximateTotals exchangedTo="EUR" exchangeRateDate="2019-02-04 11:11:07">
+                        <totalRegistered>0</totalRegistered>
+                        <totalShopperPending>0</totalShopperPending>
+                        <totalAcquirerPending>0</totalAcquirerPending>
+                        <totalAcquirerApproved>0</totalAcquirerApproved>
+                        <totalCaptured>0</totalCaptured>
+                        <totalRefunded>0</totalRefunded>
+                        <totalChargedback>0</totalChargedback>
+                    </approximateTotals>
+                </report>
+            </statusSuccess>
+        </statusResponse>
+    </S:Body>
+</S:Envelope>
+"""
+
 
 class DocdataMockTransport(suds.transport.Transport):
 
@@ -85,8 +110,11 @@ class DocdataMockTransport(suds.transport.Transport):
                     http_client.OK, {}, suds.byte_str(CREATE_PAYMENT_RESPONSE))
 
             elif suds.byte_str('status') in request.headers['SOAPAction']:
-                return suds.transport.Reply(
-                    http_client.OK, {}, suds.byte_str(STATUS_SUCCESS_RESPONSE))
+                if suds.byte_str("expired-order-key") in request.message:
+                    response = STATUS_EXPIRED_RESPONSE
+                else:
+                    response = STATUS_SUCCESS_RESPONSE
+                return suds.transport.Reply(http_client.OK, {}, suds.byte_str(response))
 
             pytest.fail("Unsupported SOAP Action: {}".format(request.headers['SOAPAction']))
 
