@@ -5,7 +5,7 @@ django-oscar-docdata
 Payment gateway integration for `Docdata Payments <http://www.docdatapayments.com/>`_ in django-oscar_.
 DocData Payments is a large payment gateway based in The Netherlands that supports more than 40 international payment methods.
 
-.. _django-oscar: https://github.com/tangentlabs/django-oscar
+.. _django-oscar: https://github.com/django-oscar/django-oscar
 
 .. image:: https://travis-ci.org/django-oscar/django-oscar-docdata.svg?branch=master
     :target: https://travis-ci.org/django-oscar/django-oscar-docdata
