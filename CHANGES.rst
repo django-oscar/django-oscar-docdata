@@ -4,7 +4,7 @@ Changelog
 Version structure: the "1.2" refers to the Docdata API version.
 
 
-Version 1.2.12 (Unreleased)
+Version 1.2.12 (2019-02-06)
 ---------------------------
 
 * Added Python 3 and Django classifiers and wheel package
