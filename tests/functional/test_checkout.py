@@ -2,14 +2,12 @@ import pytest
 
 
 @pytest.mark.django_db
-def test_checkout(settings, django_app, customer, basket, mailoutbox):
+def test_checkout(django_app, customer, basket, mailoutbox):
     """
     Just do a simple checkout to see if basic stuff is working
 
     We already have a customer, a shipping address and a filled basket
     """
-    settings.DOCDATA_MERCHANT_NAME = "merchant"
-
     # go to the checkout page
     response = django_app.get("/checkout/").maybe_follow()
 
