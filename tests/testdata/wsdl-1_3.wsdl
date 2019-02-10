@@ -1,56 +1,68 @@
-<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.3.0.2 svn-revision#b53771461f7d15f7842d8b88fd794780f6b9c4b4. --><definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ddp="http://www.docdatapayments.com/services/paymentservice/1_2/" xmlns:tns="http://www.docdatapayments.com/services/paymentservice/1_2/paymentservice.wsdl" name="paymentService" targetNamespace="http://www.docdatapayments.com/services/paymentservice/1_2/paymentservice.wsdl">
+<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.3.0.2 svn-revision#b53771461f7d15f7842d8b88fd794780f6b9c4b4. --><definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ddp="http://www.docdatapayments.com/services/paymentservice/1_3/" xmlns:tns="http://www.docdatapayments.com/services/paymentservice/1_3/paymentservice.wsdl" name="paymentService" targetNamespace="http://www.docdatapayments.com/services/paymentservice/1_3/paymentservice.wsdl">
 	<documentation>The SOAP payment service provides operations for dealing
 		with the live transactional system of DocData.</documentation>
 
 	<types>
 		<xsd:schema>
-			<xsd:import schemaLocation="https://test.docdatapayments.com:443/ps/services/paymentservice/1_2?xsd=1" namespace="http://www.docdatapayments.com/services/paymentservice/1_2/"/>
+			<xsd:import schemaLocation="https://test.docdatapayments.com:443/ps/services/paymentservice/1_3?xsd=1" namespace="http://www.docdatapayments.com/services/paymentservice/1_3/"/>
 		</xsd:schema>
 	</types>
 
 	<message name="createRequest">
 		<documentation>Parameters to the "create" operation.</documentation>
-		<part name="parameters" element="ddp:createRequest"/>
+		<part name="params" element="ddp:createRequest"/>
 	</message>
 	<message name="createResponse">
 		<documentation>Response to the "create" operation.</documentation>
-		<part name="parameters" element="ddp:createResponse"/>
+		<part name="params" element="ddp:createResponse"/>
 	</message>
 	<message name="refundRequest">
-		<part name="parameters" element="ddp:refundRequest"/>
+		<part name="params" element="ddp:refundRequest"/>
 	</message>
 	<message name="refundResponse">
-		<part name="parameters" element="ddp:refundResponse"/>
+		<part name="params" element="ddp:refundResponse"/>
 	</message>
 	<message name="cancelRequest">
-		<part name="parameters" element="ddp:cancelRequest"/>
+		<part name="params" element="ddp:cancelRequest"/>
 	</message>
 	<message name="cancelResponse">
-		<part name="parameters" element="ddp:cancelResponse"/>
+		<part name="params" element="ddp:cancelResponse"/>
 	</message>
 	<message name="startRequest">
-		<part name="parameters" element="ddp:startRequest"/>
+		<part name="params" element="ddp:startRequest"/>
 	</message>
 	<message name="startResponse">
-		<part name="parameters" element="ddp:startResponse"/>
+		<part name="params" element="ddp:startResponse"/>
+	</message>
+	<message name="proceedRequest">
+		<part name="params" element="ddp:proceedRequest"/>
+	</message>
+	<message name="proceedResponse">
+		<part name="params" element="ddp:proceedResponse"/>
 	</message>
 	<message name="captureRequest">
-		<part name="parameters" element="ddp:captureRequest"/>
+		<part name="params" element="ddp:captureRequest"/>
 	</message>
 	<message name="captureResponse">
-		<part name="parameters" element="ddp:captureResponse"/>
+		<part name="params" element="ddp:captureResponse"/>
 	</message>
 	<message name="statusRequest">
-		<part name="parameters" element="ddp:statusRequest"/>
+		<part name="params" element="ddp:statusRequest"/>
 	</message>
 	<message name="statusResponse">
-		<part name="parameters" element="ddp:statusResponse"/>
+		<part name="params" element="ddp:statusResponse"/>
 	</message>
 	<message name="extendedStatusRequest">
-		<part name="parameters" element="ddp:extendedStatusRequest"/>
+		<part name="params" element="ddp:extendedStatusRequest"/>
 	</message>
 	<message name="extendedStatusResponse">
-		<part name="parameters" element="ddp:extendedStatusResponse"/>
+		<part name="params" element="ddp:extendedStatusResponse"/>
+	</message>
+	<message name="listPaymentMethodsRequest">
+		<part name="params" element="ddp:listPaymentMethodsRequest"/>
+	</message>
+	<message name="listPaymentMethodsResponse">
+		<part name="params" element="ddp:listPaymentMethodsResponse"/>
 	</message>
 
 	<portType name="PaymentServiceSOAP">
@@ -69,6 +81,15 @@
 			</documentation>
 			<input message="tns:startRequest"/>
 			<output message="tns:startResponse"/>
+		</operation>
+		<operation name="proceed">
+			<documentation>Proceeds processing of a payment order in the DocData
+				system. This is a follow-up on the start operation, in case of
+				any required shopper interaction, like 3DS or iDEAL. This operation
+				is called with the result of the shopper interaction and proceeds handling the payment.
+			</documentation>
+			<input message="tns:proceedRequest"/>
+			<output message="tns:proceedResponse"/>
 		</operation>
 		<operation name="cancel">
 			<documentation>Cancels an authorized payment order, voiding the
@@ -102,6 +123,12 @@
 				specified payment order.</documentation>
 			<input message="tns:extendedStatusRequest"/>
 			<output message="tns:extendedStatusResponse"/>
+		</operation>
+		<operation name="listPaymentMethods">
+			<documentation>Lists all the possible the payment methods that are available for the given payment order
+			key.</documentation>
+			<input message="tns:listPaymentMethodsRequest"/>
+			<output message="tns:listPaymentMethodsResponse"/>
 		</operation>
 	</portType>
 
@@ -144,6 +171,15 @@
 				<soap:body use="literal"/>
 			</output>
 		</operation>
+		<operation name="proceed">
+			<soap:operation soapAction="proceed"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+		</operation>
 		<operation name="capture">
 			<soap:operation soapAction="capture"/>
 			<input>
@@ -171,11 +207,20 @@
 				<soap:body use="literal"/>
 			</output>
 		</operation>
+		<operation name="listPaymentMethods">
+			<soap:operation soapAction="listPaymentMethods"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+		</operation>
 	</binding>
 
 	<service name="paymentService">
 		<port binding="tns:PaymentServiceBinding" name="PaymentServiceSOAP">
-			<soap:address location="https://test.docdatapayments.com:443/ps/services/paymentservice/1_2"/>
+			<soap:address location="https://test.docdatapayments.com:443/ps/services/paymentservice/1_3"/>
 		</port>
 	</service>
 
