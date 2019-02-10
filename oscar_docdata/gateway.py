@@ -451,7 +451,7 @@ class DocdataClient(object):
         reply = self.client.service.status(
             self.merchant,
             order_key,
-            iIntegrationInfo=self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            integrationInfo=self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
         )
 
         if hasattr(reply, 'statusSuccess'):
