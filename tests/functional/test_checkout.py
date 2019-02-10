@@ -1,8 +1,10 @@
 import pytest
 
+from oscar_docdata.models import DocdataOrder
+
 
 @pytest.mark.django_db
-def test_checkout(django_app, customer, basket, mailoutbox):
+def test_checkout_payment_success(django_app, customer, basket, mailoutbox):
     """
     Just do a simple checkout to see if basic stuff is working
 
@@ -38,3 +40,20 @@ def test_checkout(django_app, customer, basket, mailoutbox):
 
     # so a confirmation email has been sent
     assert len(mailoutbox) == 1
+
+
+@pytest.mark.django_db
+def test_payment_cancelled(django_app, cancelled_docdata_order):
+    """
+    It's also possible to cancel a payment once arrived at the docdata payment menu
+    """
+    order_key = cancelled_docdata_order.order_key
+
+    # now we pretend the cancelled callback
+    response = django_app.get(
+        "/api/docdata/return/?callback=CANCELLED&order_id={}".format(order_key)).maybe_follow()
+    assert response.status == "200 OK"
+
+    cancelled_docdata_order.refresh_from_db()
+
+    assert cancelled_docdata_order.status == DocdataOrder.STATUS_CANCELLED

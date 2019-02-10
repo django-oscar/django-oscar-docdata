@@ -26,6 +26,19 @@ CREATE_PAYMENT_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 </S:Envelope>
 """.format(ORDER_KEY)
 
+CANCELLED_PAYMENT_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <cancelResponse ddpXsdVersion="1.3.14" xmlns="http://www.docdatapayments.com/services/paymentservice/1_3/">
+            <cancelSuccess>
+                <success code="SUCCESS">Operation successful.</success>
+                <result>NO_PAYMENTS</result>
+            </cancelSuccess>
+        </cancelResponse>
+    </S:Body>
+</S:Envelope>
+"""
+
 STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 <S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
     <S:Body>
@@ -72,7 +85,7 @@ STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 </S:Envelope>
 """
 
-STATUS_EXPIRED_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
+STATUS_CANCELLED_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 <S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
     <S:Body>
         <statusResponse xmlns="http://www.docdatapayments.com/services/paymentservice/1_3/">
@@ -113,9 +126,15 @@ class DocdataMockTransport(suds.transport.Transport):
                 return suds.transport.Reply(
                     http_client.OK, {}, suds.byte_str(CREATE_PAYMENT_RESPONSE))
 
+            elif suds.byte_str('cancel') in request.headers['SOAPAction']:
+                return suds.transport.Reply(
+                    http_client.OK, {}, suds.byte_str(CANCELLED_PAYMENT_RESPONSE))
+
             elif suds.byte_str('status') in request.headers['SOAPAction']:
                 if suds.byte_str("expired-order-key") in request.message:
-                    response = STATUS_EXPIRED_RESPONSE
+                    response = STATUS_CANCELLED_RESPONSE
+                elif suds.byte_str("cancelled-order-key") in request.message:
+                    response = STATUS_CANCELLED_RESPONSE
                 else:
                     response = STATUS_SUCCESS_RESPONSE
                 return suds.transport.Reply(http_client.OK, {}, suds.byte_str(response))
