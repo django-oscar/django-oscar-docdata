@@ -3,7 +3,8 @@ django-oscar-docdata
 ====================
 
 Payment gateway integration for `Docdata Payments <http://www.docdatapayments.com/>`_ in django-oscar_.
-DocData Payments is a large payment gateway based in The Netherlands that supports more than 40 international payment methods.
+DocData Payments is a large payment gateway based in The Netherlands that supports more than
+40 international payment methods.
 
 .. _django-oscar: https://github.com/django-oscar/django-oscar
 
@@ -113,6 +114,22 @@ This includes the project-specific decisions such as:
 * When to submit confirmation emails.
 
 
+Local development and running the tests
+---------------------------------------
+
+You can use the included Makefile to install a development environment and to run the flake8
+checker and the testrunner. Make sure you do this inside a virtualenv:
+
+.. code-block:: bash
+
+    git clone git@github.com:django-oscar/django-oscar-docdata.git
+
+    cd django-oscar-docdata
+    make install
+    make lint
+    make test
+
+
 Running the Sandbox application
 -------------------------------
 
@@ -156,10 +173,16 @@ Make sure the following settings are configured:
  * Update URL: ``http://example.org/api/docdata/update_order/?order_id=``
 
 
+Docdata Payment Service Specification
+-------------------------------------
+
+See the `paymentService <https://secure.docdatapayments.com/ps/orderapi-1_3.wsdl>`_ specification for
+detailed technical information.
+
 Caveats
 =======
 
-While working with the Docdata 1.0 and 1.2 API, we found the following limitations:
+While working with the Docdata 1.0, 1.2 and 1.3 API, we found the following limitations:
 
 * Address fields are oriented towards Dutch address standards.
   Passing international address fields is hard, or requires hacking, for example:
