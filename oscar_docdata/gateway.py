@@ -69,10 +69,10 @@ def get_suds_client(testing_mode=False):
     Create the suds client to connect to docdata.
     """
     if testing_mode:
-        url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
+        url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_3?wsdl'
     else:
-        url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
-    # Online preview: https://secure.docdatapayments.com/ps/orderapi-1_2.wsdl
+        url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_3?wsdl'
+    # Online preview: https://secure.docdatapayments.com/ps/orderapi-1_3.wsdl
 
     # See if the client is already fetched, if so, reuse that.
     try:
@@ -104,7 +104,7 @@ class DocdataAPIVersionPlugin(suds.plugin.MessagePlugin):
     def marshalled(self, context):
         body = context.envelope.getChild('Body')
         request = body[0]
-        request.set('version', '1.2')
+        request.set('version', '1.3')
 
 
 def log_docdata_error(soap_error, message, *args, **kwargs):
@@ -312,7 +312,7 @@ class DocdataClient(object):
         #     paymentRequest paymentRequest, invoice invoice, technicalIntegrationInfo integrationInfo )
         #
         # The WSDL and XSD also contain documentation individual parameters:
-        # https://secure.docdatapayments.com/ps/services/paymentservice/1_2?xsd=1
+        # https://secure.docdatapayments.com/ps/services/paymentservice/1_3?xsd=1
         #
         # This displays the results in the docdata web menu.
         #
@@ -895,7 +895,7 @@ class Invoice(object):
         :param basket: The basket to submit
         :type basket: :class:`~oscar.apps.basket.abstract_models.AbstractBasket`
         :param shipping_address: The shipping address for the invoice.
-                                Note: the Docdata API v1.2 reads this address he "State" field to submit to PayPal.
+                                Note: the Docdata API v1.3 reads this address he "State" field to submit to PayPal.
                                 Hence, HACK this by passing the billing address instead of the shipping address.
         :type shipping_address: :class:`~oscar.apps.address.abstract_models.AbstractAddress`
         """
