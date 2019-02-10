@@ -8,17 +8,15 @@ import suds
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-WSDL = open(os.path.join(CURRENT_DIR, "testdata", "wsdl-1_2.wsdl")).read()
-XSD = open(os.path.join(CURRENT_DIR, "testdata", "xsd1-1_2.xsd")).read()
+WSDL = open(os.path.join(CURRENT_DIR, "testdata", "wsdl-1_3.wsdl")).read()
+XSD = open(os.path.join(CURRENT_DIR, "testdata", "xsd1-1_3.xsd")).read()
 
 ORDER_KEY = "DE6A6E24F046FB24094E9208C66FEFE7"
 
 CREATE_PAYMENT_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
-<S:Envelope
-    xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
     <S:Body>
-        <createResponse
-            xmlns="http://www.docdatapayments.com/services/paymentservice/1_2/">
+        <createResponse ddpXsdVersion="1.3.14" xmlns="http://www.docdatapayments.com/services/paymentservice/1_3/">
             <createSuccess>
                 <success code="SUCCESS">Operation successful.</success>
                 <key>{}</key>
@@ -29,15 +27,13 @@ CREATE_PAYMENT_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 """.format(ORDER_KEY)
 
 STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
-<S:Envelope
-    xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
     <S:Body>
-        <statusResponse
-            xmlns="http://www.docdatapayments.com/services/paymentservice/1_2/">
+        <statusResponse ddpXsdVersion="1.3.14" xmlns="http://www.docdatapayments.com/services/paymentservice/1_3/">
             <statusSuccess>
                 <success code="SUCCESS">Operation successful.</success>
                 <report>
-                    <approximateTotals exchangedTo="EUR" exchangeRateDate="2019-02-04 11:11:07">
+                    <approximateTotals exchangeRateDate="2019-02-10 16:52:52" exchangedTo="EUR">
                         <totalRegistered>299</totalRegistered>
                         <totalShopperPending>0</totalShopperPending>
                         <totalAcquirerPending>0</totalAcquirerPending>
@@ -45,9 +41,10 @@ STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
                         <totalCaptured>299</totalCaptured>
                         <totalRefunded>0</totalRefunded>
                         <totalChargedback>0</totalChargedback>
+                        <totalReversed>0</totalReversed>
                     </approximateTotals>
                     <payment>
-                        <id>4910070526</id>
+                        <id>4910079745</id>
                         <paymentMethod>IDEAL</paymentMethod>
                         <authorization>
                             <status>AUTHORIZED</status>
@@ -59,6 +56,15 @@ STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
                             </capture>
                         </authorization>
                     </payment>
+                    <consideredSafe>
+                        <value>true</value>
+                        <level>SAFE</level>
+                        <date>2019-02-10T16:51:43.446+01:00</date>
+                        <reason>EXACT_MATCH</reason>
+                    </consideredSafe>
+                    <apiInformation conversionApplied="false">
+                        <originalVersion>1.3</originalVersion>
+                    </apiInformation>
                 </report>
             </statusSuccess>
         </statusResponse>
@@ -67,15 +73,13 @@ STATUS_SUCCESS_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
 """
 
 STATUS_EXPIRED_RESPONSE = """<?xml version='1.0' encoding='UTF-8'?>
-<S:Envelope
-    xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
     <S:Body>
-        <statusResponse
-            xmlns="http://www.docdatapayments.com/services/paymentservice/1_2/">
+        <statusResponse xmlns="http://www.docdatapayments.com/services/paymentservice/1_3/">
             <statusSuccess>
                 <success code="SUCCESS">Operation successful.</success>
                 <report>
-                    <approximateTotals exchangedTo="EUR" exchangeRateDate="2019-02-04 11:11:07">
+                    <approximateTotals exchangeRateDate="2019-02-04 11:11:07" exchangedTo="EUR">
                         <totalRegistered>0</totalRegistered>
                         <totalShopperPending>0</totalShopperPending>
                         <totalAcquirerPending>0</totalAcquirerPending>
