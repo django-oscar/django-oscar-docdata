@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils.translation import get_language
 from suds.sax.element import Element
 from oscar_docdata import appsettings, __version__ as oscar_docdata_version
-from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
+from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataCancelError, OrderKeyMissing
 from six import text_type, integer_types
 from six.moves.urllib.parse import urlencode
 from six.moves.urllib.error import URLError
@@ -344,53 +344,6 @@ class DocdataClient(object):
         else:
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
 
-    def start(self, order_key, payment, payment_method=None, amount=None):
-        """
-        The start operation is used for starting a (web direct) payment on an order.
-        It does not need to be used if the merchant makes use of Docdata Payments web menu.
-
-        The web direct can be used for recurring payments for example.
-        Standard payments (e.g. iDEAL, creditcard) all happen through the web menu
-        because implementing those locally requires certification by the credit card companies.
-
-        TODO: untested
-
-        :type order_key: str
-        :param payment: A subclass of the payment class, which one depends on the payment method.
-        :type payment: Payment
-        :param payment_method: One of the supported payment methods, e.g. PAYMENT_METHOD_IDEAL, PAYMENT_METHOD_MASTERCARD.
-                               If omitted, the payment method of the ``payment`` object is used.
-        :type payment_method: str
-        :param amount: Optional payment amount. If left empty, the full amount of the payment order is used.
-        :type amount: Amount
-        """
-        if not order_key:
-            raise OrderKeyMissing("Missing order_key!")
-
-        # We only need to set amount because of bug in suds library. Otherwise it defaults to order amount.
-
-        paymentRequestInput = self.client.factory.create('ns0:paymentRequestInput')
-        if amount is not None:
-            paymentRequestInput.paymentAmount = amount.to_xml(self.client.factory)
-        paymentRequestInput.paymentMethod = payment_method or payment.payment_method
-        paymentRequestInput[payment.request_parameter] = payment.to_xml(self.client.factory)
-
-        # Execute start payment request.
-        reply = self.client.service.start(
-            self.merchant,
-            order_key,
-            paymentRequestInput,
-            integrationInfo=self.integration_info.to_xml(self.client.factory)
-        )
-        if hasattr(reply, 'startSuccess'):
-            return StartReply(reply.startSuccess.paymentId)
-        elif hasattr(reply, 'startError'):
-            error = reply.createError.error
-            log_docdata_error(error, "DocdataClient: failed to get start payment for order %s", order_key)
-            raise DocdataStartError(error._code, error.value)
-        else:
-            raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
-
     def cancel(self, order_key):
         """
         The cancel command is used for canceling a previously created payment,
@@ -451,7 +404,7 @@ class DocdataClient(object):
         reply = self.client.service.status(
             self.merchant,
             order_key,
-            integrationInfo=self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            integrationInfo=self.integration_info.to_xml(self.client.factory)
         )
 
         if hasattr(reply, 'statusSuccess'):
@@ -474,7 +427,7 @@ class DocdataClient(object):
         reply = self.client.service.statusExtended(
             self.merchant,
             order_key,
-            self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            self.integration_info.to_xml(self.client.factory)
         )
 
         if hasattr(reply, 'statusSuccess'):
