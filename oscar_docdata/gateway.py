@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils.translation import get_language
 from suds.sax.element import Element
 from oscar_docdata import appsettings, __version__ as oscar_docdata_version
-from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataStartError, DocdataCancelError, OrderKeyMissing
+from oscar_docdata.exceptions import DocdataCreateError, DocdataStatusError, DocdataCancelError, OrderKeyMissing
 from six import text_type, integer_types
 from six.moves.urllib.parse import urlencode
 from six.moves.urllib.error import URLError
@@ -69,10 +69,10 @@ def get_suds_client(testing_mode=False):
     Create the suds client to connect to docdata.
     """
     if testing_mode:
-        url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
+        url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_3?wsdl'
     else:
-        url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
-    # Online preview: https://secure.docdatapayments.com/ps/orderapi-1_2.wsdl
+        url = 'https://secure.docdatapayments.com/ps/services/paymentservice/1_3?wsdl'
+    # Online preview: https://secure.docdatapayments.com/ps/orderapi-1_3.wsdl
 
     # See if the client is already fetched, if so, reuse that.
     try:
@@ -104,7 +104,7 @@ class DocdataAPIVersionPlugin(suds.plugin.MessagePlugin):
     def marshalled(self, context):
         body = context.envelope.getChild('Body')
         request = body[0]
-        request.set('version', '1.2')
+        request.set('version', '1.3')
 
 
 def log_docdata_error(soap_error, message, *args, **kwargs):
@@ -312,7 +312,7 @@ class DocdataClient(object):
         #     paymentRequest paymentRequest, invoice invoice, technicalIntegrationInfo integrationInfo )
         #
         # The WSDL and XSD also contain documentation individual parameters:
-        # https://secure.docdatapayments.com/ps/services/paymentservice/1_2?xsd=1
+        # https://secure.docdatapayments.com/ps/services/paymentservice/1_3?xsd=1
         #
         # This displays the results in the docdata web menu.
         #
@@ -341,53 +341,6 @@ class DocdataClient(object):
             error = reply.createError.error
             log_docdata_error(error, "DocdataClient: failed to create payment for order %s", order_id)
             raise DocdataCreateError(error._code, error.value)
-        else:
-            raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
-
-    def start(self, order_key, payment, payment_method=None, amount=None):
-        """
-        The start operation is used for starting a (web direct) payment on an order.
-        It does not need to be used if the merchant makes use of Docdata Payments web menu.
-
-        The web direct can be used for recurring payments for example.
-        Standard payments (e.g. iDEAL, creditcard) all happen through the web menu
-        because implementing those locally requires certification by the credit card companies.
-
-        TODO: untested
-
-        :type order_key: str
-        :param payment: A subclass of the payment class, which one depends on the payment method.
-        :type payment: Payment
-        :param payment_method: One of the supported payment methods, e.g. PAYMENT_METHOD_IDEAL, PAYMENT_METHOD_MASTERCARD.
-                               If omitted, the payment method of the ``payment`` object is used.
-        :type payment_method: str
-        :param amount: Optional payment amount. If left empty, the full amount of the payment order is used.
-        :type amount: Amount
-        """
-        if not order_key:
-            raise OrderKeyMissing("Missing order_key!")
-
-        # We only need to set amount because of bug in suds library. Otherwise it defaults to order amount.
-
-        paymentRequestInput = self.client.factory.create('ns0:paymentRequestInput')
-        if amount is not None:
-            paymentRequestInput.paymentAmount = amount.to_xml(self.client.factory)
-        paymentRequestInput.paymentMethod = payment_method or payment.payment_method
-        paymentRequestInput[payment.request_parameter] = payment.to_xml(self.client.factory)
-
-        # Execute start payment request.
-        reply = self.client.service.start(
-            self.merchant,
-            order_key,
-            paymentRequestInput,
-            integrationInfo=self.integration_info.to_xml(self.client.factory)
-        )
-        if hasattr(reply, 'startSuccess'):
-            return StartReply(reply.startSuccess.paymentId)
-        elif hasattr(reply, 'startError'):
-            error = reply.createError.error
-            log_docdata_error(error, "DocdataClient: failed to get start payment for order %s", order_key)
-            raise DocdataStartError(error._code, error.value)
         else:
             raise NotImplementedError('Received unknown reply from DocData. Remote Payment not created.')
 
@@ -451,7 +404,7 @@ class DocdataClient(object):
         reply = self.client.service.status(
             self.merchant,
             order_key,
-            iIntegrationInfo=self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            integrationInfo=self.integration_info.to_xml(self.client.factory)
         )
 
         if hasattr(reply, 'statusSuccess'):
@@ -474,7 +427,7 @@ class DocdataClient(object):
         reply = self.client.service.statusExtended(
             self.merchant,
             order_key,
-            self.integration_info.to_xml(self.client.factory)  # NOTE: called iIntegrationInfo in the XSD!!
+            self.integration_info.to_xml(self.client.factory)
         )
 
         if hasattr(reply, 'statusSuccess'):
@@ -895,7 +848,7 @@ class Invoice(object):
         :param basket: The basket to submit
         :type basket: :class:`~oscar.apps.basket.abstract_models.AbstractBasket`
         :param shipping_address: The shipping address for the invoice.
-                                Note: the Docdata API v1.2 reads this address he "State" field to submit to PayPal.
+                                Note: the Docdata API v1.3 reads this address he "State" field to submit to PayPal.
                                 Hence, HACK this by passing the billing address instead of the shipping address.
         :type shipping_address: :class:`~oscar.apps.address.abstract_models.AbstractAddress`
         """

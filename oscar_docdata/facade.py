@@ -88,7 +88,7 @@ class Facade(Interface):
         :returns: The Docdata order reference ("order key").
 
         ..note::
-            The Docdata API v1.2 has issues with passing the address fields to PayPal.
+            The Docdata API v1.3 has issues with passing the address fields to PayPal.
             It read the "billing_address.state" field as "status", and as hack they
             now pass the "shipping_address.state" to PayPal.
             Hence, the recommended action is to pass the billing address as shipping address too.

@@ -111,3 +111,10 @@ def expired_docdata_order(docdata_order):
     docdata_order.order_key = "expired-order-key"
     docdata_order.save()
     return docdata_order
+
+
+@pytest.fixture()
+def cancelled_docdata_order(docdata_order):
+    docdata_order.order_key = "cancelled-order-key"
+    docdata_order.save()
+    return docdata_order

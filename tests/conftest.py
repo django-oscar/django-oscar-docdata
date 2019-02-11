@@ -45,7 +45,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.fixture(autouse=True)
 def mock_suds(mocker):
-    url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_2?wsdl'
+    url = 'https://test.docdatapayments.com/ps/services/paymentservice/1_3?wsdl'
 
     # create a custom suds client with a wsdl and xsd saved on disk so we don't really connect
     # to docdata
