@@ -16,7 +16,6 @@ from oscar_docdata.exceptions import InvalidMerchant
 from oscar_docdata.gateway import DocdataClient
 from oscar_docdata.models import DocdataOrder, DocdataPayment
 from oscar_docdata.signals import order_status_changed, payment_added, payment_updated
-from six import text_type
 
 logger = logging.getLogger(__name__)
 
@@ -151,29 +150,6 @@ class Interface(object):
         For more information, see :func:`DocdataClient.get_payment_menu_url`.
         """
         return self.client.get_payment_menu_url(request, order_key, return_url=return_url, client_language=client_language, **extra_url_args)
-
-    def start_payment(self, order, payment, payment_method=None):
-        """
-        :type order: DocdataOrder
-        """
-        # Backwards compatibility fix, old parameter was named "order_key".
-        if isinstance(order, text_type):
-            order = DocdataOrder.objects.select_for_update().active_merchants().get(order_key=order)
-
-        amount = None
-
-        # This can raise an exception.
-        client = DocdataClient.for_merchant(order.merchant_name, testing_mode=self.testing_mode)
-        startsuccess = client.start(order.order_key, payment, payment_method=payment_method, amount=amount)
-
-        self._set_status(order, DocdataOrder.STATUS_IN_PROGRESS)
-        order.save()
-
-        # Not updating the DocdataPayment objects here,
-        # instead just wait for Docdata to call the status view.
-
-        # Return for further reference.
-        return startsuccess.payment_id
 
     def cancel_order(self, order):
         """
