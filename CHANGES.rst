@@ -3,11 +3,12 @@ Changelog
 
 Version structure: the "1.x" refers to the Docdata API version.
 
-Version 1.3.0 (Unreleased)
+Version 1.3.0 (2019-02-14)
 --------------------------
 
 * Upgraded to Docdata 1.3 API
 * Removed the untested and probably unused `start` method from the `DocdataClient` class
+* Removed the corresponding start_payment method from the `Interface` class
 
 Version 1.2.12 (2019-02-06)
 ---------------------------
