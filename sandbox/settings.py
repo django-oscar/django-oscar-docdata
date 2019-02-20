@@ -122,6 +122,11 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
+        'suds.transport': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG is True else 'INFO',
+            'propagate': True,
+        },
         'oscar': {
             'handlers': ['console'],
             'level': 'DEBUG' if DEBUG is True else 'INFO',
