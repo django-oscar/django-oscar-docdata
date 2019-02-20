@@ -134,7 +134,7 @@ Running the Sandbox application
 -------------------------------
 
 It is possible to run the `sandbox application`_ to test this package and to see if your
-Docdata credentials work. You can set the `DOCDATA_MERCHANT_NAME` and the `DOCDATA_MERCHANT_PASSWORD`
+Docdata credentials work. You can set the `DOCDATA_MERCHANT_NAME`, `DOCDATA_MERCHANT_PASSWORD` and `DOCDATA_PROFILE`
 environment variables before running `manage.py`:
 
 .. code-block:: bash
@@ -148,8 +148,8 @@ environment variables before running `manage.py`:
     # so you can fill out your shipping address
     ./sandbox/manage.py loaddata sandbox/fixtures/countries.json
 
-    # run the sandbox installation with the docdata merchant username and passord
-    DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant ./sandbox/manage.py runserver
+    # run the sandbox installation with the docdata merchant username, password and profile
+    DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant DOCDATA_PROFILE=test ./sandbox/manage.py runserver
 
 Docdata is really keen on having unique merchant order ids. Why is not really clear as they don't
 use this references (they use their own). While testing it can happen that you run into an error

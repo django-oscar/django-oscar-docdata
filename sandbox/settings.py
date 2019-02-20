@@ -196,6 +196,9 @@ DOCDATA_MERCHANT_NAME = os.environ.get("DOCDATA_MERCHANT_NAME", "")
 DOCDATA_MERCHANT_PASSWORD = os.environ.get("DOCDATA_MERCHANT_PASSWORD", "")
 DOCDATA_TESTING = True
 
+# The payment-methods profile that is created in the Docdata Backoffice. By default, this is named "standard".
+DOCDATA_PROFILE = os.environ.get("DOCDATA_PROFILE", "standard")
+
 # URLs
 DOCDATA_SUCCESS_URL = reverse_lazy('checkout:thank-you')
 DOCDATA_PENDING_URL = reverse_lazy('checkout:thank-you')
