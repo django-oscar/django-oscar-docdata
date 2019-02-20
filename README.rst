@@ -146,7 +146,7 @@ environment variables before running `manage.py`:
     ./sandbox/manage.py oscar_import_catalogue sandbox/fixtures/books.csv
 
     # so you can fill out your shipping address
-    ./sandbox/manage.py loaddata fixtures/countries.json
+    ./sandbox/manage.py loaddata sandbox/fixtures/countries.json
 
     # run the sandbox installation with the docdata merchant username and passord
     DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant ./sandbox/manage.py runserver
