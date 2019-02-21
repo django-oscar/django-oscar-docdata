@@ -220,6 +220,10 @@ WEBSHOP_PAYMENT_CHOICES = (
     ('PAYPAL_EXPRESS_CHECKOUT', 'PayPal'),  # NOTE: has additional hack in checkout code for US.
 )
 
+# Don't show the payment selection form during the checkout process: leave it up to the docdata
+# payment menu
+SKIP_PAYMENT_CHOICES = bool(os.environ.get("SKIP_PAYMENT_CHOICES") == "1")
+
 # Order pipeline
 OSCAR_INITIAL_ORDER_STATUS = 'new'  # The main object
 OSCAR_INITIAL_LINE_STATUS = 'new'   # The individual lines

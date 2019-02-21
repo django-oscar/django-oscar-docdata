@@ -1,10 +1,11 @@
 import logging
 
 from django.conf import settings
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import FormView
 
 from oscar.apps.payment.exceptions import RedirectRequired
+from oscar.apps.checkout import exceptions
 from oscar.apps.checkout import views as oscar_views
 from oscar.apps.payment.models import Source
 
@@ -24,6 +25,10 @@ class PaymentMethodView(oscar_views.PaymentMethodView, FormView):
     step = 'payment-method'
     form_class = forms.PaymentMethodForm
     success_url = reverse_lazy('checkout:payment-details')
+
+    def skip_unless_payment_is_required(self, request):
+        if settings.SKIP_PAYMENT_CHOICES:
+            raise exceptions.PassedSkipCondition(url=reverse('checkout:preview'))
 
     def get_success_response(self):
         # No errors in get(), apply our form logic.
@@ -113,7 +118,12 @@ class PaymentDetailsView(oscar_views.PaymentDetailsView):
         # Ask oscar to redirect to docdata
         # TODO: test default_act="yes", skips menu entirely
         # TODO: add issuer_id for iDEAL.
-        url = facade.get_payment_menu_url(self.request, docdata_ref, default_pm=self.checkout_session.payment_method())
+        payment_url_args = {}
+
+        if self.checkout_session.payment_method() is not None:
+            payment_url_args['default_pm'] = self.checkout_session.payment_method()
+
+        url = facade.get_payment_menu_url(self.request, docdata_ref, **payment_url_args)
         logger.info("Redirecting user to {0}".format(url))
 
         # Regardless of whether the order is paid, write it in the database before redirecting.

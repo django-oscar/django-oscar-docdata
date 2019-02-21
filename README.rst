@@ -158,6 +158,13 @@ about unique merchant order ids. In that case you can set the following environm
     # just a number which will be added to the submitted order id
     DOCDATA_ORDER_ID_START=99999
 
+Docdata's payment menu allows you to choose a payment method available so you don't need this in
+the checkout application. You can disable the sandbox payment method selection with the following
+environment variable::
+
+    SKIP_PAYMENT_CHOICES=1
+
+
 Configuration of the Docdata Backoffice
 ---------------------------------------
 

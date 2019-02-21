@@ -12,7 +12,7 @@
                 {% trans "Change" %}
             </a>
             <h3>{% trans "Payment" %}</h3>
-            <p>Using {{ payment_method.title }}</p>
+            <p>Using {{ payment_method.title|default:'Docdata' }}</p>
         </div>
     </div>
 {% endblock payment_method %}
