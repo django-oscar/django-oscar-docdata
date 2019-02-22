@@ -7,8 +7,8 @@ import re
 import sys
 
 
-# When creating the sdist, make sure the django.mo file also exists:
-if 'sdist' in sys.argv:
+# When creating the distribution, make sure the django.mo file also exists:
+if 'sdist' or 'bdist_wheel' in sys.argv:
     os.chdir('oscar_docdata')
     from django.core import management
     management.call_command('compilemessages', stdout=sys.stderr, verbosity=1)
