@@ -3,6 +3,12 @@ Changelog
 
 Version structure: the "1.x" refers to the Docdata API version.
 
+Version 1.3.1 (2019-02-28)
+--------------------------
+
+* createError has been renamed to createErrors in Docdata API version 1.3
+
+
 Version 1.3.0 (2019-02-14)
 --------------------------
 
