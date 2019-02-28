@@ -409,8 +409,8 @@ class DocdataClient(object):
 
         if hasattr(reply, 'statusSuccess'):
             return StatusReply(order_key, reply.statusSuccess.report)
-        elif hasattr(reply, 'statusError'):
-            error = reply.statusError.error
+        elif hasattr(reply, 'statusErrors'):
+            error = reply.statusErrors.error
             log_docdata_error(error, "DocdataClient: failed to get status for payment cluster %s", order_key)
             raise DocdataStatusError(error._code, error.value)
         else:
