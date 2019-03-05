@@ -154,6 +154,10 @@ def _on_return_view_called(request, order, callback, **kwargs):
         logger.info("Received {0} state at return view, cancelling order {1}".format(callback, order.merchant_order_id))
         order.cancel()
 
+        # restore the frozen basket into the active basket so we can checkout again
+        oscar_order = Order.objects.get(number=order.merchant_order_id)
+        request.basket.merge(oscar_order.basket)
+
 
 class SendConfirmationEmail(OrderPlacementMixin):
     """
