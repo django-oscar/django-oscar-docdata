@@ -1,6 +1,7 @@
 import logging
 import os
 
+from django.contrib import messages
 from django.dispatch import receiver
 from django.http import HttpRequest
 from django.utils import translation
@@ -147,12 +148,18 @@ def _on_return_view_called(request, order, callback, **kwargs):
     """
     :type order: :class:`oscar_docdata.models.DocdataOrder`
     """
-    # If the payment menu was cancelled before a payment method selected,
-    # docdata registers that there is no payment at all.
-    # Cluster state = started, but there is no payment object at all.
     if callback in ('CANCELLED', 'ERROR'):
-        logger.info("Received {0} state at return view, cancelling order {1}".format(callback, order.merchant_order_id))
+        # If the payment menu was cancelled before a payment method selected,
+        # docdata registers that there is no payment at all.
+        # Cluster state = started, but there is no payment object at all.
+        msg = "Received {0} state at return view, cancelling order {1}".format(callback, order.merchant_order_id)
+        logger.info(msg)
+        messages.error(request, msg)
         order.cancel()
+    else:
+        msg = "Received {0} state at return view for order {1}".format(callback, order.merchant_order_id)
+        logger.info(msg)
+        messages.success(request, msg)
 
         # restore the frozen basket into the active basket so we can checkout again
         oscar_order = Order.objects.get(number=order.merchant_order_id)
