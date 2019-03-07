@@ -127,7 +127,7 @@ def _on_order_status_updated(order, **kwargs):
         add_payment_event(oscar_order, "paid", order.total_captured, reference=order.order_key)
 
         # Notify the eventhandler that the status was changed.
-        ev = EventHandler(user=None)
+        ev = EventHandler(user=oscar_order.user)
         ev.handle_order_status_change(oscar_order, "paid")
 
         # Send confirmation email
