@@ -337,8 +337,8 @@ class DocdataClient(object):
         if hasattr(reply, 'createSuccess'):
             order_key = str(reply['createSuccess']['key'])
             return CreateReply(order_id, order_key)
-        elif hasattr(reply, 'createError'):
-            error = reply.createError.error
+        elif hasattr(reply, 'createErrors'):
+            error = reply.createErrors.error
             log_docdata_error(error, "DocdataClient: failed to create payment for order %s", order_id)
             raise DocdataCreateError(error._code, error.value)
         else:
@@ -356,8 +356,8 @@ class DocdataClient(object):
 
         if hasattr(reply, 'cancelSuccess'):
             return True
-        elif hasattr(reply, 'cancelError'):
-            error = reply.cancelError.error
+        elif hasattr(reply, 'cancelErrors'):
+            error = reply.cancelErrors.error
             log_docdata_error(error, "DocdataClient: failed to cancel the order %s", order_key)
             raise DocdataCancelError(error._code, error.value)
         else:
@@ -432,8 +432,8 @@ class DocdataClient(object):
 
         if hasattr(reply, 'statusSuccess'):
             return StatusReply(order_key, reply.statusSuccess.report)
-        elif hasattr(reply, 'statusError'):
-            error = reply.statusError.error
+        elif hasattr(reply, 'statusErrors'):
+            error = reply.statusErrors.error
             log_docdata_error(error, "DocdataClient: failed to get status for payment cluster %s", order_key)
             raise DocdataStatusError(error._code, error.value)
         else:
