@@ -1,6 +1,7 @@
 import logging
 import os
 
+from django.contrib import messages
 from django.dispatch import receiver
 from django.http import HttpRequest
 from django.utils import translation
