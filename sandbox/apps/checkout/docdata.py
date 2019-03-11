@@ -10,6 +10,7 @@ from oscar.apps.payment.abstract_models import AbstractTransaction
 from oscar.core.loading import get_class, get_model
 
 from oscar_docdata import signals
+from oscar_docdata.exceptions import DocdataStatusError
 from oscar_docdata.facade import Facade
 from oscar_docdata.models import DocdataOrder
 
@@ -141,6 +142,8 @@ def _on_order_status_updated(order, **kwargs):
         add_payment_event(oscar_order, "refunded", order.total_refunded, reference=order.order_key)
     elif order.status == DocdataOrder.STATUS_CANCELLED:
         add_payment_event(oscar_order, "cancelled", order.total_registered, reference=order.order_key)
+    else:
+        raise DocdataStatusError("Unknown order status: %r" % order.status)
 
 
 @receiver(signals.return_view_called)
