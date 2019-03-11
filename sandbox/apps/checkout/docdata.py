@@ -1,5 +1,5 @@
+import datetime
 import logging
-import os
 
 from django.contrib import messages
 from django.dispatch import receiver
@@ -42,15 +42,15 @@ class CustomDocdataFacade(Facade):
         # Though this should be the shipping address,
         # using the billing address here because Docdata reads that field.
         # Seriously. This is messed up.
+        api_args['invoice'].ship_to = api_args['bill_to']
 
-        # The following is an option so you can test the sandbox with unique
-        # merchant numbers without overriding the complete order application.
         # Docdata expects unique merchant order numbers, but they don't do
         # anything with it so you can send here any number you like. The
         # callback from docdata is working with docdata references, not
         # with merchant order id's
-        api_args['order_id'] += int(os.environ.get('DOCDATA_ORDER_ID_START', '0'))
-        api_args['invoice'].ship_to = api_args['bill_to']
+        # We insert a date here so that the number is always unique:
+        now = datetime.datetime.utcnow()
+        api_args['order_id'] = "%s-%s" % (now.strftime("%Y%m%d-%H%M%S"), api_args['order_id'])
 
         return api_args
 

@@ -3,6 +3,11 @@ Changelog
 
 Version structure: the "1.x" refers to the Docdata API version.
 
+Version 1.3.2
+-------------
+
+* remove `DOCDATA_ORDER_ID_START` from sandbox app and prefix docdata merchant order numbers with a datetime
+
 Version 1.3.1 (2019-02-28)
 --------------------------
 
