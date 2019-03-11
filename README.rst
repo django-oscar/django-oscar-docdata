@@ -152,11 +152,8 @@ environment variables before running `manage.py`:
     DOCDATA_MERCHANT_NAME=merchant DOCDATA_MERCHANT_PASSWORD=merchant DOCDATA_PROFILE=test ./sandbox/manage.py runserver
 
 Docdata is really keen on having unique merchant order ids. Why is not really clear as they don't
-use this references (they use their own). While testing it can happen that you run into an error
-about unique merchant order ids. In that case you can set the following environment variable::
-
-    # just a number which will be added to the submitted order id
-    DOCDATA_ORDER_ID_START=99999
+use this references (they use their own). To avoid conflicts, the sandbox app adds the current datetime
+as a prefix.
 
 Docdata's payment menu allows you to choose a payment method available so you don't need this in
 the checkout application. You can disable the sandbox payment method selection with the following
