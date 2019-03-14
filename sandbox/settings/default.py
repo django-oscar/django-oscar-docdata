@@ -5,7 +5,7 @@ from oscar import get_core_apps, OSCAR_MAIN_TEMPLATE_DIR
 from oscar.defaults import *  # noqa
 
 PROJECT_DIR = os.path.dirname(__file__)
-location = lambda x: os.path.join(os.path.dirname(os.path.realpath(__file__)), x)  # noqa
+location = lambda x: os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), x)  # noqa
 
 DEBUG = True
 USE_TZ = True

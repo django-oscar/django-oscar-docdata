@@ -1,5 +1,8 @@
 language: python
 
+services:
+  - postgresql
+
 dist: xenial
 
 matrix:
@@ -23,10 +26,10 @@ matrix:
     - { python: "3.7", env: "DJANGO='Django>=2.1,<2.2' OSCAR='django-oscar>1.6,<1.7'"}
 
 install:
-    - pip install $OSCAR $DJANGO
+    - pip install $OSCAR $DJANGO psycopg2-binary
     - pip freeze
     - make install
 
 script:
     - make lint
-    - make test
+    - DJANGO_SETTINGS_MODULE=sandbox.settings.postgresql make test
