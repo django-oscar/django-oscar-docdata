@@ -143,7 +143,7 @@ def _on_order_status_updated(order, **kwargs):
     elif order.status == DocdataOrder.STATUS_CANCELLED:
         add_payment_event(oscar_order, "cancelled", order.total_registered, reference=order.order_key)
     else:
-        raise DocdataStatusError("Unknown order status: %r" % order.status)
+        raise DocdataStatusError(0, "Unknown order status: %s" % order.status)
 
 
 @receiver(signals.return_view_called)
