@@ -18,11 +18,11 @@ class DocdataOrder(models.Model):
     STATUS_NEW = 'new'                      # Initial state
     STATUS_IN_PROGRESS = 'in_progress'      # In the redirect phase
     STATUS_PENDING = 'pending'              # Waiting for user to complete payment (e.g. credit cards)
-    STATUS_PAID = 'paid'                    # End of story, paid!
+    STATUS_PAID = 'paid'                    # Paid
     STATUS_PAID_REFUNDED = 'paid_refunded'  # Paid, and performed a partial refund
-    STATUS_CANCELLED = 'cancelled'          # End of story, cancelled
-    STATUS_CHARGED_BACK = 'charged_back'    # End of story, consumer asked for charge back
-    STATUS_REFUNDED = 'refunded'            # End of story, refunded, merchant refunded
+    STATUS_CANCELLED = 'cancelled'          # Cancelled
+    STATUS_CHARGED_BACK = 'charged_back'    # Consumer asked for charge back
+    STATUS_REFUNDED = 'refunded'            # Refunded, merchant refunded
     STATUS_EXPIRED = 'expired'              # No results of customer, order was closed.
     STATUS_UNKNOWN = 'unknown'              # Help!
 
