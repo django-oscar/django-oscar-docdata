@@ -47,8 +47,9 @@ class UpdateOrderMixin(object):
         """
         Update the status of an order, by fetching the latest state from docdata.
         """
-        # Try to find the order.
-        # Block any other requests on the order until the status change is handled.
+        # Try to find the order and when found, lock the row.
+        # NOTE: you need to call this function inside a transaction!
+
         try:
             return DocdataOrder.objects.select_for_update().active_merchants().get(**{self.order_slug_field: order_slug})
         except DocdataOrder.DoesNotExist:
