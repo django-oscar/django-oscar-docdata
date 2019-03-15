@@ -4,6 +4,7 @@ Bridging module between Oscar and the gateway module (which is Oscar agnostic)
 import logging
 import importlib
 
+from django.db import transaction
 from django.utils.translation import get_language
 from oscar.apps.order.exceptions import InvalidOrderStatus
 from oscar.apps.payment.exceptions import PaymentError
@@ -168,23 +169,24 @@ class Facade(Interface):
 
         # Update the order in Oscar
         # Using select_for_update() to have a lock on the order first.
-        order = Order.objects.select_for_update().get(number=docdataorder.merchant_order_id)
-        if order.status == project_status:
-            # Parallel update by docdata (return URL and callback), avoid sending the signal twice to the user code.
-            logging.info("Order {0} status is already {1}, skipping signal.".format(order.number, order.status))
-            return
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(number=docdataorder.merchant_order_id)
+            if order.status == project_status:
+                # Parallel update by docdata (return URL and callback), avoid sending the signal twice to the user code.
+                logging.info("Order {0} status is already {1}, skipping signal.".format(order.number, order.status))
+                return
 
-        old_oscar_status = order.status
-        try:
-            order.set_status(project_status)
-        except InvalidOrderStatus:
-            # Avoid forcing a status onto oscar models.
-            # A order could be manually updated to a new status (e.g. paid outside of docdata),
-            # while the docdata order remains in a pending state.
-            logging.warning("Order %s status is %s, will not change to %s", order.number, order.status, project_status)
-            return
-        else:
-            logging.info("Order {0} status changed from {1} to {2}.".format(order.number, old_oscar_status, order.status))
+            old_oscar_status = order.status
+            try:
+                order.set_status(project_status)
+            except InvalidOrderStatus:
+                # Avoid forcing a status onto oscar models.
+                # A order could be manually updated to a new status (e.g. paid outside of docdata),
+                # while the docdata order remains in a pending state.
+                logging.warning("Order %s status is %s, will not change to %s", order.number, order.status, project_status)
+                return
+            else:
+                logging.info("Order {0} status changed from {1} to {2}.".format(order.number, old_oscar_status, order.status))
 
         # Send the signal
         super(Facade, self).order_status_changed(docdataorder, old_status, new_status)
