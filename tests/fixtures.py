@@ -14,6 +14,7 @@ User = get_user_model()
 
 Basket = get_model('basket', 'Basket')
 Product = get_model('catalogue', 'Product')
+BillingAddress = get_model('order', 'BillingAddress')
 ShippingAddress = get_model('order', 'ShippingAddress')
 UserAddress = get_model('address', 'UserAddress')
 Source = get_model('payment', 'Source')
@@ -60,12 +61,21 @@ def shipping_address(customer):
 
 
 @pytest.fixture()
+def billing_address(customer):
+    user_address = UserAddress.objects.get(user=customer)
+    billingg_address = BillingAddress()
+    user_address.populate_alternative_model(billingg_address)
+    billingg_address.save()
+    return billingg_address
+
+
+@pytest.fixture()
 def source_type():
     return SourceType.objects.get(code="docdata")
 
 
 @pytest.fixture()
-def oscar_order(basket, shipping_address):
+def oscar_order(basket, shipping_address, billing_address):
     order_number = OrderNumberGenerator().order_number(basket)
     shipping_method = Repository().get_default_shipping_method(
         basket=basket,
@@ -82,7 +92,8 @@ def oscar_order(basket, shipping_address):
         shipping_charge=shipping_charge,
         user=basket.owner,
         shipping_address=shipping_address,
-        order_number=order_number
+        order_number=order_number,
+        billing_address=billing_address
     )
 
 
@@ -118,3 +129,14 @@ def cancelled_docdata_order(docdata_order):
     docdata_order.order_key = "cancelled-order-key"
     docdata_order.save()
     return docdata_order
+
+
+@pytest.fixture()
+def mock_total_from_oscar_order(mocker):
+    def _mock_total_from_oscar_order(oscar_order):
+        total = mocker.MagicMock()
+        total.incl_tax = oscar_order.total_incl_tax
+        total.currency = "EUR"
+        return total
+
+    return _mock_total_from_oscar_order
