@@ -8,7 +8,7 @@ from datetime import timedelta
 import logging
 from decimal import Decimal as D
 from django.core.exceptions import ImproperlyConfigured
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import get_language
 from oscar_docdata import appsettings
@@ -315,91 +315,77 @@ class Interface(object):
 
             # Now save the result into a DocdataPayment object.
             # Find or create the correct payment object for current report.
-            payment_class = DocdataPayment  # TODO: self.id_to_model_mapping[order.payment_method_id]
             updated = False
             added = False
 
-            try:
-                ddpayment = payment_class.objects.select_for_update().get(payment_id=str(payment.id))
-            except payment_class.DoesNotExist:
-                # Create new line
-                ddpayment = payment_class(
-                    docdata_order=order,
-                    payment_id=int(payment.id),
-                    payment_method=str(payment.paymentMethod),
+            with transaction.atomic():
+                ddpayment, added = DocdataPayment.objects.select_for_update().get_or_create(
+                    payment_id=str(payment.id),
+                    defaults={
+                        'docdata_order': order,
+                        'payment_method': str(payment.paymentMethod)
+                    }
                 )
-                added = True
 
-            if not payment.paymentMethod == ddpayment.payment_method:
-                # Payment method change??
-                logger.warn(
-                    "Payment method from Docdata doesn't match saved payment method. "
-                    "Storing the payment method received from Docdata for payment id {0}: {1}".format(
-                        ddpayment.payment_id, payment.paymentMethod
+                if not payment.paymentMethod == ddpayment.payment_method:
+                    # Payment method change??
+                    logger.warn(
+                        "Payment method from Docdata doesn't match saved payment method. "
+                        "Storing the payment method received from Docdata for payment id {0}: {1}".format(
+                            ddpayment.payment_id, payment.paymentMethod
+                        )
                     )
-                )
-                ddpayment.payment_method = str(payment.paymentMethod)
-                updated = True
+                    ddpayment.payment_method = str(payment.paymentMethod)
+                    updated = True
 
-            # Store the totals
-            old_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
+                # Store the totals
+                old_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
 
-            ddpayment.confidence_level = authorization.confidenceLevel
-            ddpayment.amount_allocated = amount_allocated
-            ddpayment.amount_debited = self._get_payment_sum(payment, "capture", "CAPTURED")
-            ddpayment.amount_refunded = self._get_payment_sum(payment, "refund", "CAPTURED")
-            ddpayment.amount_chargeback = self._get_payment_sum(payment, "chargeback", "CHARGED")
+                ddpayment.confidence_level = authorization.confidenceLevel
+                ddpayment.amount_allocated = amount_allocated
+                ddpayment.amount_debited = self._get_payment_sum(payment, "capture", "CAPTURED")
+                ddpayment.amount_refunded = self._get_payment_sum(payment, "refund", "CAPTURED")
+                ddpayment.amount_chargeback = self._get_payment_sum(payment, "chargeback", "CHARGED")
 
-            # Track changes
-            new_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
-            if old_values != new_values:
-                updated = True
+                # Track changes
+                new_values = (ddpayment.confidence_level, ddpayment.amount_allocated, ddpayment.amount_chargeback, ddpayment.amount_refunded, ddpayment.amount_debited)
+                if old_values != new_values:
+                    updated = True
 
-            # Detect status change
+                # Detect status change
 
-            if ddpayment.status != auth_status:
-                # Status change!
-                logger.info("Docdata payment status changed. payment={0} status: {1} -> {2}".format(
-                    payment.id, ddpayment.status, auth_status
-                ))
-
-                if auth_status not in DocdataClient.DOCUMENTED_STATUS_VALUES \
-                        and auth_status not in DocdataClient.SEEN_UNDOCUMENTED_STATUS_VALUES:
-                    # Note: We continue to process the payment status change on this error.
-                    logger.warn("Received unknown payment status from Docdata. payment={0}, status={1}".format(
-                        payment.id, auth_status
+                if ddpayment.status != auth_status:
+                    # Status change!
+                    logger.info("Docdata payment status changed. payment={0} status: {1} -> {2}".format(
+                        payment.id, ddpayment.status, auth_status
                     ))
 
-                ddpayment.status = auth_status
-                updated = True
+                    if auth_status not in DocdataClient.DOCUMENTED_STATUS_VALUES \
+                            and auth_status not in DocdataClient.SEEN_UNDOCUMENTED_STATUS_VALUES:
+                        # Note: We continue to process the payment status change on this error.
+                        logger.warn("Received unknown payment status from Docdata. payment={0}, status={1}".format(
+                            payment.id, auth_status
+                        ))
 
-            if added or updated:
-                # Saving might happen concurrently, as the user returns to the OrderReturnView
-                # and Docdata calls the StatusChangedNotificationView at the same time.
-                sid = transaction.savepoint()  # for PostgreSQL
-                try:
+                    ddpayment.status = auth_status
+                    updated = True
+
+                if added or updated:
+                    # Saving might happen concurrently, as the user returns to the OrderReturnView
+                    # and Docdata calls the StatusChangedNotificationView at the same time.
+                    # that's why we locked the ddpayment
                     ddpayment.save()
-                    transaction.savepoint_commit(sid)
-                except IntegrityError:
-                    transaction.savepoint_rollback(sid)
-                    logger.warn("Experienced concurrency issues with update-status, payment id {0}: {1}".format(payment.id))
+                    # Fire events so payment transactions can be created in Oscar.
+                    # This can be used to call source.transactions.create(..) for example.
+                    if added:
+                        payment_added.send(sender=DocdataPayment, order=order, payment=ddpayment)
+                    else:
+                        payment_updated.send(sender=DocdataPayment, order=order, payment=ddpayment)
 
-                    # Overwrite existing object instead.
-                    # not needed, no impact on save: ddpayment._state.adding = False
-                    ddpayment.id = str(payment.id)
-                    ddpayment.save()
-                    added = False
+                ddpayment_objects.append(ddpayment)
+                setattr(ddpayment, '_source', payment)
 
-                # Fire events so payment transactions can be created in Oscar.
-                # This can be used to call source.transactions.create(..) for example.
-                if added:
-                    payment_added.send(sender=DocdataPayment, order=order, payment=ddpayment)
-                else:
-                    payment_updated.send(sender=DocdataPayment, order=order, payment=ddpayment)
-
-            ddpayment_objects.append(ddpayment)
-            setattr(ddpayment, '_source', payment)
-
+        # endor
         if new_status is None:
             # Didn't get a clearly detectable/conclusive status.
             # Try to use the last line in such case, otherwise, use new_status.
