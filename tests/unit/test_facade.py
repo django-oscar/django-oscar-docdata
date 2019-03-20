@@ -2,11 +2,14 @@ import pytest
 
 from oscar_docdata.exceptions import DocdataStatusError
 from oscar_docdata.facade import Facade
-from tests.suds_transport import ORDER_KEY
+from tests.testdata import docdata_responses
 
 
 @pytest.mark.django_db
-def test_facade_create_payment(oscar_order, mock_total_from_oscar_order):
+def test_facade_create_payment(oscar_order, mock_total_from_oscar_order, mock_transport):
+    mock_transport.set_responses([
+        docdata_responses.CREATE_PAYMENT_RESPONSE
+    ])
     facade = Facade(testing_mode=True)
 
     docdata_order_key = facade.create_payment(
@@ -16,11 +19,15 @@ def test_facade_create_payment(oscar_order, mock_total_from_oscar_order):
         billing_address=oscar_order.billing_address
     )
     # ORDER_KEY is the hardocded expected results
-    assert docdata_order_key == ORDER_KEY
+    assert docdata_order_key == docdata_responses.ORDER_KEY
 
 
 @pytest.mark.django_db
-def test_facade_order_status_changed(docdata_order):
+def test_facade_order_status_changed(docdata_order, mock_transport):
+    mock_transport.set_responses([
+        docdata_responses.STATUS_SUCCESS_RESPONSE
+    ])
+
     facade = Facade(testing_mode=True)
     # the report was stored first with a status change so the docdata order status is
     # already changed

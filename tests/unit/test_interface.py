@@ -5,7 +5,6 @@ from oscar_docdata.interface import Interface
 
 @pytest.mark.django_db
 def test_initialize():
-    # this will query docdata to see if the orders are paid
     interface = Interface(testing_mode=True)
     assert interface.testing_mode is True
     # 'merchant' is set in the environment
