@@ -1,7 +1,6 @@
 import os
 import tempfile
 
-from django.contrib.auth import get_user_model
 from django.core.management import call_command
 
 from oscar_docdata.gateway import DocdataAPIVersionPlugin
@@ -11,8 +10,6 @@ import pytest
 import suds
 
 from .suds_transport import DocdataMockTransport
-
-User = get_user_model()
 
 pytest_plugins = "tests.fixtures"
 
@@ -25,10 +22,10 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
         # import one book from the sandbox csv data
         csv_data = open("sandbox/fixtures/books.csv").readlines()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            csv_path = os.path.join(tmp_dir, "onebook.csv")
-            open(csv_path, "wb").write(csv_data[-1].encode('utf-8'))
-            call_command("oscar_import_catalogue", csv_path)
+        f, csv_path = tempfile.mkstemp()
+        open(csv_path, "w").write(csv_data[-1])
+        call_command("oscar_import_catalogue", csv_path)
+        os.remove(csv_path)
 
 
 @pytest.fixture(autouse=True)
