@@ -3,8 +3,17 @@ Changelog
 
 Version structure: the "1.x" refers to the Docdata API version.
 
-Version 1.3.2
--------------
+Version 1.3.3 (2019-04-03)
+--------------------------
+
+* Added missing parameter when raising a `DocDataStatusError` exception in the sandbox
+* Wrap the order update in `order_status_changed` in a transaction
+* Wrap `_store_report_lines` in a transaction and make sure `payment_id` is a string
+* Simplified `_store_report_lines` by using `get_or_create`
+
+
+Version 1.3.2 (2019-03-14)
+--------------------------
 
 * remove `DOCDATA_ORDER_ID_START` from sandbox
 * renamed remaining createErrors / cancelErrors / statusErrors to be compliant with Docdata API version 1.3
