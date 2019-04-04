@@ -11,12 +11,15 @@ Version 1.3.3 (2019-04-03)
 * Wrap `_store_report_lines` in a transaction and make sure `payment_id` is a string
 * Simplified `_store_report_lines` by using `get_or_create`
 
+`View commits <https://github.com/django-oscar/django-oscar-docdata/compare/v1.3.2...v1.3.3>`_
 
 Version 1.3.2 (2019-03-14)
 --------------------------
 
 * remove `DOCDATA_ORDER_ID_START` from sandbox
 * renamed remaining createErrors / cancelErrors / statusErrors to be compliant with Docdata API version 1.3
+
+`View commits <https://github.com/django-oscar/django-oscar-docdata/compare/v1.3.1...v1.3.2>`_
 
 Version 1.3.1 (2019-02-28)
 --------------------------
