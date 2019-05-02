@@ -14,7 +14,9 @@ User = get_user_model()
 
 Basket = get_model('basket', 'Basket')
 Product = get_model('catalogue', 'Product')
+BillingAddress = get_model('order', 'BillingAddress')
 ShippingAddress = get_model('order', 'ShippingAddress')
+Country = get_model('address', 'Country')
 UserAddress = get_model('address', 'UserAddress')
 Source = get_model('payment', 'Source')
 SourceType = get_model('payment', 'SourceType')
@@ -22,13 +24,36 @@ OrderCreator = get_class('order.utils', 'OrderCreator')
 OrderNumberGenerator = get_class('order.utils', 'OrderNumberGenerator')
 OrderTotalCalculator = get_class(
     'checkout.calculators', 'OrderTotalCalculator')
+SourceType = get_model('payment', 'SourceType')
 Repository = get_class('shipping.repository', 'Repository')
 Selector = get_class('partner.strategy', 'Selector')
 
 
 @pytest.fixture()
 def customer():
-    return User.objects.get(username="customer")
+    # add a customer to login with
+    user, created = User.objects.get_or_create(
+        username="customer", defaults={'email': 'customer@oscarcommerce.com'})
+    user.set_password("customer")
+    user.save()
+    return user
+
+
+@pytest.fixture()
+def user_address(customer):
+    address, created = UserAddress.objects.get_or_create(
+        user=customer,
+        defaults={
+            'title': "Mr",
+            'first_name': "John",
+            'last_name': "Doe",
+            'line1': "Just a street 1",
+            'line4': "Amsterdam",
+            'postcode': "1111AA",
+            'country': Country.objects.get(pk="NL")
+        }
+    )
+    return address
 
 
 @pytest.fixture()
@@ -50,9 +75,8 @@ def basket(customer, book):
     return basket
 
 
-@pytest.fixture()
-def shipping_address(customer):
-    user_address = UserAddress.objects.get(user=customer)
+@pytest.fixture
+def shipping_address(customer, user_address):
     shipping_address = ShippingAddress()
     user_address.populate_alternative_model(shipping_address)
     shipping_address.save()
@@ -60,12 +84,22 @@ def shipping_address(customer):
 
 
 @pytest.fixture()
-def source_type():
-    return SourceType.objects.get(code="docdata")
+def billing_address(customer, user_address):
+    billingg_address = BillingAddress()
+    user_address.populate_alternative_model(billingg_address)
+    billingg_address.save()
+    return billingg_address
 
 
 @pytest.fixture()
-def oscar_order(basket, shipping_address):
+def source_type():
+    source_type, created = SourceType.objects.get_or_create(
+        name="Docdata Payments", code="docdata")
+    return source_type
+
+
+@pytest.fixture()
+def oscar_order(basket, shipping_address, billing_address):
     order_number = OrderNumberGenerator().order_number(basket)
     shipping_method = Repository().get_default_shipping_method(
         basket=basket,
@@ -82,7 +116,8 @@ def oscar_order(basket, shipping_address):
         shipping_charge=shipping_charge,
         user=basket.owner,
         shipping_address=shipping_address,
-        order_number=order_number
+        order_number=order_number,
+        billing_address=billing_address
     )
 
 
@@ -118,3 +153,14 @@ def cancelled_docdata_order(docdata_order):
     docdata_order.order_key = "cancelled-order-key"
     docdata_order.save()
     return docdata_order
+
+
+@pytest.fixture()
+def mock_total_from_oscar_order(mocker):
+    def _mock_total_from_oscar_order(oscar_order):
+        total = mocker.MagicMock()
+        total.incl_tax = oscar_order.total_incl_tax
+        total.currency = "EUR"
+        return total
+
+    return _mock_total_from_oscar_order
